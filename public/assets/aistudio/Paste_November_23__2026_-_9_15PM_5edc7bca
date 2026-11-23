@@ -1,0 +1,1776 @@
+# FORGEX 4XPAY
+# PREMIUM FINTECH UI/UX DESIGN & IMPLEMENTATION MASTER PROMPT
+### Razorpay-Inspired Experience | Original ForgeX Identity | Desktop + Mobile
+
+## YOUR ROLE
+
+Act as a multidisciplinary team consisting of:
+
+- Principal FinTech Product Designer
+- Senior UI/UX Designer
+- SaaS Dashboard Design Specialist
+- Senior React / TypeScript Frontend Engineer
+- Design System Architect
+- Mobile Experience Designer
+- Accessibility Specialist
+- Frontend Performance Engineer
+- QA Automation Engineer
+
+Your responsibility is to completely redesign and improve the existing ForgeX 4XPay application's UI and UX to the quality expected from a modern premium fintech platform.
+
+The level of professionalism, visual polish, usability, structure and interaction design should be comparable to products such as Razorpay, Stripe and other leading financial dashboards.
+
+**IMPORTANT: Use those products as quality references, not as designs to copy.**
+
+ForgeX 4XPay must have original branding, its own visual identity, original layouts and distinctive components.
+
+Do not copy Razorpay logos, illustrations, proprietary graphics, exact screen layouts or branded assets.
+
+Do not rebuild the existing payment backend unnecessarily. Inspect the repository and reuse working APIs, authentication, databases and business logic.
+
+The final result must feel like a real fintech product built for an ambitious technology company—not a generic admin-panel template.
+
+---
+
+# 1. PROJECT UNDERSTANDING
+
+## 1.1 What Is ForgeX 4XPay?
+
+ForgeX 4XPay is an independent, standalone payment collection and financial management platform.
+
+It connects:
+
+1. ForgeX Super Admin Dashboard
+2. ForgeX Admin HQ
+3. ForgeX Finance HQ
+4. ForgeX Employee HQ
+5. ForgeX Client App
+
+4XPay manages:
+
+- UPI payment requests
+- Unique payment IDs
+- UPI QR codes
+- Customer payment records
+- Admin-controlled verification
+- Invoice and receipt management
+- Missing-payment disputes
+- Transaction reporting
+- Application API credentials
+- Secure receiving bank configuration
+
+## 1.2 Current Payment Architecture
+
+The initial system does not integrate Razorpay, Cashfree, PayU or another payment gateway.
+
+Customers pay through their own UPI apps to a configured receiving UPI address.
+
+A customer completing the external UPI payment does not automatically establish that 4XPay has verified the credit.
+
+An authorised finance administrator verifies the incoming bank transaction and confirms it in 4XPay.
+
+Once confirmed, the system updates the financial records and issues the appropriate receipt.
+
+**The UI must accurately communicate this workflow.**
+
+Never fake automatic bank verification, settlement records or payment success states.
+
+---
+
+# 2. OVERALL VISUAL DESIGN DIRECTION
+
+Create an exceptionally polished, trustworthy, contemporary financial interface.
+
+## 2.1 Design Personality
+
+The visual identity should communicate:
+
+- Financial trust
+- Security
+- Precision
+- Professionalism
+- Technical sophistication
+- Speed
+- Operational clarity
+- Premium product quality
+
+The application should look suitable for a modern SaaS/fintech platform used by professional businesses.
+
+## 2.2 Visual Design Characteristics
+
+Use:
+
+- Clean information hierarchy
+- Generous but efficient whitespace
+- Precise alignment
+- Soft neutral backgrounds
+- Carefully controlled accent colours
+- Refined borders
+- Subtle elevations
+- Professional charts
+- High-quality icons
+- Clear transaction tables
+- Smooth micro-interactions
+- Consistent component geometry
+
+Avoid:
+
+- Excessive gradients
+- Distracting glowing effects
+- Oversized icons
+- Random illustrations
+- Unnecessary animations
+- Inconsistent spacing
+- Excessive colours
+- Cheap-looking glassmorphism
+- Fake financial charts
+- Overcrowded dashboards
+
+The resulting product should be visually impressive but operationally practical.
+
+---
+
+# 3. FORGEX 4XPAY BRAND IDENTITY
+
+## 3.1 Brand Name
+
+Primary identity:
+
+**4XPay**
+
+Secondary identity:
+
+**by ForgeX**
+
+Suggested descriptive tagline:
+
+"Payments, Managed Smarter."
+
+Use a custom, original wordmark inspired by precision, technology and financial reliability.
+
+Do not copy other fintech logos.
+
+## 3.2 Brand Colours
+
+Use the following proposed design tokens as a starting direction.
+
+### Primary Palette
+
+- Midnight Navy: `#101828`
+- Deep Indigo: `#3538CD`
+- Electric Indigo: `#4F46E5`
+- Soft Indigo: `#EEF2FF`
+- Cyan Accent: `#06B6D4`
+
+### Neutral Palette
+
+- Canvas: `#F8FAFC`
+- Surface: `#FFFFFF`
+- Secondary Surface: `#F1F5F9`
+- Primary Text: `#0F172A`
+- Secondary Text: `#64748B`
+- Border: `#E2E8F0`
+
+### Semantic Colours
+
+- Success: `#15803D`
+- Warning: `#B45309`
+- Error: `#B91C1C`
+- Information: `#2563EB`
+
+Adjust colours where needed to satisfy accessible contrast requirements.
+
+Do not rely on colour alone to communicate payment state.
+
+## 3.3 Typography
+
+Use Inter, Manrope or a comparable readable professional typeface.
+
+Recommended hierarchy:
+
+- Main page heading: 28–32px
+- Section heading: 20–24px
+- Card heading: 16–18px
+- Body text: 14–16px
+- Table text: 13–14px
+- Supporting text: 12–13px
+
+Use tabular figures for financial amounts, dates and identifiers.
+
+Make Indian rupee formatting consistent:
+
+₹5,000.00
+
+₹1,25,000.00
+
+₹12,50,000.00
+
+Use proper Indian number grouping.
+
+## 3.4 Component Styling
+
+- Primary buttons: clean indigo with strong contrast
+- Secondary buttons: subtle bordered treatment
+- Cards: 12–16px radius
+- Inputs: 8–12px radius
+- Standard input height: approximately 44–48px
+- Subtle card shadows only where useful
+- Consistent 4px/8px spacing system
+- Clean focus indicators
+- Responsive component dimensions
+
+Use a consistent icon library such as Lucide.
+
+---
+
+# 4. DESIGN SYSTEM IMPLEMENTATION
+
+Before redesigning individual screens, establish reusable design foundations.
+
+Build:
+
+- Typography tokens
+- Colour tokens
+- Spacing tokens
+- Border radius tokens
+- Shadow tokens
+- Motion tokens
+- Breakpoint tokens
+- Accessible focus states
+- Semantic status colours
+
+Create reusable components:
+
+- AppShell
+- Sidebar
+- TopNavigation
+- PageHeader
+- MetricCard
+- DataTable
+- StatusBadge
+- DateRangeFilter
+- SearchInput
+- FilterPopover
+- DetailDrawer
+- ConfirmationDialog
+- Timeline
+- NotificationPanel
+- EmptyState
+- SkeletonLoader
+- QRCodeCard
+- PaymentStatusPanel
+- SecureTextField
+- AccountCard
+- ReceiptPreview
+- AuditTimeline
+
+Use existing components where appropriate rather than duplicating them.
+
+Prefer a maintainable component architecture.
+
+Suggested frontend stack, if compatible with the existing repository:
+
+- React
+- TypeScript
+- Tailwind CSS
+- shadcn/ui or accessible Radix primitives
+- Lucide icons
+- Recharts for analytics
+- React Hook Form
+- Zod for form validation
+- TanStack Query for server state
+- TanStack Table for complex data tables
+- Motion library only where justified
+
+Do not introduce dependencies without a clear benefit.
+
+---
+
+# 5. APPLICATION LAYOUT
+
+Create a premium fintech dashboard application shell.
+
+## 5.1 Desktop Layout
+
+Use a three-part structure:
+
+**Left Sidebar | Top Navigation | Main Workspace**
+
+### Sidebar
+
+Width: approximately 240–260px expanded.
+
+Support a collapsed sidebar mode.
+
+At the top:
+
+- 4XPay logo
+- "by ForgeX"
+- Workspace selector, if applicable
+
+Navigation groups:
+
+### WORKSPACE
+- Overview
+- Analytics
+- Transactions
+- Payment Requests
+- UPI QR Codes
+
+### FINANCE
+- Payment Verification
+- Reconciliation
+- Invoices
+- Receipts
+- Disputes
+
+### MANAGEMENT
+- Customers
+- Receiving Accounts
+- Connected Applications
+- API Credentials
+
+### SYSTEM
+- Notifications
+- Audit Logs
+- Security
+- Settings
+- Support
+
+Only show modules that the current user is authorised to access.
+
+Do not create dead navigation links for unfinished features.
+
+Use clear section separators, coherent navigation icons and a distinctive active-item indicator.
+
+### Top Navigation
+
+Include:
+
+- Breadcrumb navigation
+- Global search
+- Date/context controls where relevant
+- Notifications
+- Help/documentation
+- Light/dark mode toggle
+- User account menu
+
+Use a sticky top bar where appropriate.
+
+## 5.2 Main Content Layout
+
+Use:
+
+- Page title and supporting description
+- Contextual actions in the heading area
+- KPI summaries where useful
+- Primary content sections
+- Filters above tables
+- Side drawers for details
+- Modals for focused tasks
+
+Keep the layout uncluttered.
+
+Do not force all pages into the same card arrangement.
+
+---
+
+# 6. SUPER ADMIN DASHBOARD — HOME
+
+This is the flagship 4XPay screen.
+
+It must immediately communicate how ForgeX payments are performing.
+
+## 6.1 Welcome Header
+
+Example:
+
+"Good morning"
+
+"Here's your 4XPay financial overview."
+
+Show the actual configured workspace or business name.
+
+Do not hardcode a person's name.
+
+Provide a date-range selector:
+
+- Today
+- Last 7 days
+- Last 30 days
+- Custom range
+
+## 6.2 Primary Financial Metric Cards
+
+Display:
+
+**Card 1: Verified Collections**
+Total amount of independently verified received payments.
+
+**Card 2: Payments Awaiting Verification**
+Count and amount of payment attempts requiring review.
+
+**Card 3: Outstanding Invoices**
+Total unpaid invoice balance.
+
+**Card 4: Active Disputes**
+Number of unresolved payment verification cases.
+
+Optional secondary metrics:
+
+- Payment requests created
+- Verified transactions
+- Average verification turnaround
+- Unmatched bank credits
+- Partially paid invoices
+
+### Card Design
+
+Each card should feature:
+
+- Concise metric label
+- Large value
+- Contextual explanation
+- Small appropriate icon
+- Optional trend if historical data exists
+- Link to the underlying filtered records
+
+Never invent trend percentages or display zero-change trends as genuine growth insights.
+
+## 6.3 Financial Analytics
+
+Create a premium interactive line or area chart.
+
+Title:
+
+"Verified Collections Over Time"
+
+Controls:
+
+- Daily
+- Weekly
+- Monthly
+
+Use real verified payment data.
+
+Support:
+
+- Tooltips
+- Accurate date ranges
+- INR formatting
+- Empty state
+- Loading state
+- Error state
+- Responsive chart sizing
+
+Use subtle fills and thin, professional lines.
+
+Do not display unverified customer claims as confirmed revenue.
+
+## 6.4 Quick Actions
+
+Provide a compact action section:
+
+- Create Payment Request
+- Generate UPI QR
+- Review Pending Payments
+- Create Invoice
+- Open Finance HQ
+
+Every button must lead to an appropriate working flow.
+
+## 6.5 Recent Transactions
+
+Create a professional compact table.
+
+Columns:
+
+- Payment ID
+- Customer
+- Amount
+- Payment Type
+- Status
+- Created At
+- Action
+
+Clicking a row should open a transaction detail drawer.
+
+## 6.6 Verification Attention Panel
+
+Create a compact panel:
+
+"Payments Requiring Attention"
+
+Show:
+
+- Unreviewed cases
+- Disputed payments
+- Ambiguous transaction matches
+- High-value approvals
+
+Prioritise actionable information over decorative visual elements.
+
+---
+
+# 7. TRANSACTIONS PAGE
+
+Design this page with the operational efficiency expected from a premium payment dashboard.
+
+## 7.1 Header
+
+Title: Transactions
+
+Description:
+
+"Track payment attempts and independently verified collections."
+
+Primary actions:
+
+- Export
+- Filter
+- Search
+
+## 7.2 Status Tabs
+
+- All
+- Awaiting Payment
+- Awaiting Verification
+- Under Review
+- Verified
+- Disputed
+- Closed
+
+## 7.3 Transaction Table
+
+Columns:
+
+- Payment ID
+- Customer
+- Invoice
+- Amount
+- Method
+- Verification Status
+- Date and Time
+- Actions
+
+Features:
+
+- Search by Payment ID
+- Search by customer
+- Filter by date
+- Filter by amount
+- Filter by status
+- Sort columns
+- Pagination
+- Selectable rows where useful
+- Export authorised data
+- Responsive column handling
+
+Use server-side filtering and pagination for large datasets.
+
+### Status Styling
+
+- Verified: subtle green badge
+- Awaiting Verification: amber badge
+- Under Review: blue badge
+- Disputed: red or orange badge
+- Awaiting Payment: neutral badge
+
+Use understandable wording.
+
+## 7.4 Transaction Details Drawer
+
+When a transaction is selected, open a polished right-side detail drawer on desktop and full-screen detail view on mobile.
+
+Include:
+
+- Amount
+- Status
+- Payment ID
+- Customer
+- Invoice reference
+- Project reference
+- Payment method
+- Receiving account summary
+- Submitted UTR, where available
+- Verification method
+- Verified by, if authorised
+- Receipt availability
+
+### Timeline
+
+Use a chronological payment timeline:
+
+1. Payment request created
+2. Payment attempt initiated
+3. Customer reported payment
+4. Verification case opened
+5. Finance review started
+6. Bank credit confirmed by authorised admin
+7. Receipt issued
+
+Only show events that actually occurred.
+
+Provide contextual actions according to status and permissions.
+
+---
+
+# 8. PAYMENT REQUESTS PAGE
+
+Create a dedicated payment request management experience.
+
+## 8.1 Payment Request List
+
+Show:
+
+- Request ID
+- Customer
+- Project
+- Invoice
+- Amount
+- Due Date
+- Current Status
+- Created By
+
+Provide filters, search, pagination and detail views.
+
+## 8.2 Create Payment Request
+
+Use a polished step-based form.
+
+### Step 1 — Select Customer
+
+Search existing customers.
+
+### Step 2 — Select Project / Invoice
+
+Show relevant project information.
+
+### Step 3 — Payment Details
+
+Select:
+
+- Advance
+- Milestone
+- Final Payment
+- Other authorised invoice payment
+
+Show the invoice amount due.
+
+Do not permit arbitrary modification of an existing authorised invoice amount.
+
+### Step 4 — Review
+
+Show:
+
+- Customer
+- Project
+- Invoice
+- Requested amount
+- Receiving UPI configuration
+- Relevant payment instructions
+
+### Step 5 — Create
+
+Create the request through the backend.
+
+Show a professional success screen containing the new Payment Request ID.
+
+Provide:
+
+- Copy Request Link
+- View Details
+- Open Client Preview
+
+Separate a Payment Request ID from the unique Payment ID created for each payment attempt.
+
+---
+
+# 9. UPI QR CODE MANAGER
+
+This screen should look exceptionally polished.
+
+## 9.1 QR Code Library
+
+Display existing payment QR records using a table or compact card layout.
+
+Show:
+
+- Associated Payment ID
+- Amount
+- Customer
+- Date Created
+- Application Status
+- QR Preview
+
+Actions:
+
+- View
+- Download
+- Copy Payment Link
+- Open Associated Payment
+- Regenerate a new payment attempt where permitted
+
+## 9.2 QR Preview
+
+Create a premium QR preview panel.
+
+Use:
+
+- White background for scanability
+- Appropriate quiet zone around QR
+- ForgeX branding outside the scannable QR area
+- Prominent expected amount
+- Merchant/payee display name
+- Payment reference
+- Instructions
+
+Example:
+
+4XPay
+
+Pay ₹5,000
+
+Payee: ForgeX
+
+Payment ID: FXPAY-2026-XXXX
+
+"Scan using any compatible UPI app."
+
+Use real data from the backend.
+
+Do not place visual elements over the QR code that may reduce scannability.
+
+## 9.3 Important QR Behaviour
+
+A generated QR does not automatically prove that funds have arrived.
+
+The QR's status should represent the payment attempt's application status, not an independently confirmed banking result unless verification occurred.
+
+Clearly distinguish generated QR records from verified payments.
+
+---
+
+# 10. PREMIUM CUSTOMER UPI CHECKOUT
+
+The customer-facing checkout is one of the most important parts of the complete 4XPay experience.
+
+Design it to be exceptionally clean, secure-looking, responsive and easy to understand.
+
+Use a distinct checkout layout rather than the administrative dashboard shell.
+
+## 10.1 Checkout Header
+
+Top area:
+
+- 4XPay logo
+- "Secure UPI Checkout"
+- ForgeX business identity
+
+Use truthful trust messaging.
+
+Do not claim bank certification or regulated payment gateway status unless actually obtained.
+
+## 10.2 Desktop Checkout Layout
+
+Use two columns.
+
+### Left — Payment Summary
+
+Display:
+
+- Project name
+- Customer
+- Invoice ID
+- Payment category
+- Payment amount
+- Outstanding balance
+- Unique Payment ID
+- Business/payee identity
+
+### Right — Payment Method
+
+Display a well-designed payment card containing:
+
+- UPI payment method
+- QR code
+- Open UPI App button
+- Copy UPI ID
+- Payment instructions
+- Payment status
+
+## 10.3 Payment Methods
+
+UPI should be the only active payment method in Version 1.
+
+Do not show cards or net banking as usable options when they are not supported.
+
+Future payment methods may be shown in internal product documentation, but not as misleading live checkout choices.
+
+## 10.4 Mobile Checkout
+
+Use a single-column layout.
+
+Top:
+
+- ForgeX identity
+- Payment amount
+- Payment summary
+
+Middle:
+
+- Primary "Pay via UPI App" button
+- Supported UPI app handoff
+- QR instructions for a second device
+
+Bottom:
+
+- Payment reference
+- Help options
+- "I Have Paid" button
+- Payment verification status
+
+Use large touch targets.
+
+Keep the primary action easy to reach without obstructing content.
+
+## 10.5 After Returning from UPI
+
+Never immediately show "Payment Successful" merely because the user returned from a UPI app.
+
+Instead display:
+
+**Payment Awaiting Verification**
+
+Supporting text:
+
+"If you completed the UPI transfer, you can submit your transaction reference for verification."
+
+Show:
+
+- Payment ID
+- Expected amount
+- Verification status
+- I Have Paid button
+- Contact Support
+
+Avoid encouraging duplicate payment attempts.
+
+## 10.6 Verified Payment Screen
+
+After backend verification:
+
+Show a refined success experience.
+
+Include:
+
+- Success icon
+- "Payment Verified"
+- Verified amount
+- Payment ID
+- Invoice
+- Receipt number
+- Download Receipt button
+- Return to Project button
+
+A subtle success animation is acceptable.
+
+Keep it short and accessible.
+
+---
+
+# 11. MANUAL PAYMENT VERIFICATION CENTER
+
+This is a signature 4XPay feature.
+
+Build a professional finance operations workspace.
+
+## 11.1 Main Verification Queue
+
+Title:
+
+"Payment Verification"
+
+Description:
+
+"Review customer-reported payments and confirm incoming bank credits."
+
+Show:
+
+- Pending cases
+- Under Review
+- Clarification Required
+- Verified
+- Rejected
+
+## 11.2 Queue Table
+
+Columns:
+
+- Verification Case ID
+- Customer
+- Payment ID
+- Expected Amount
+- Submitted UTR
+- Submitted At
+- Assigned Reviewer
+- Status
+- Action
+
+Allow search, filtering and priority sorting.
+
+## 11.3 Case Review Screen
+
+Use a structured three-section layout.
+
+### Section A — Payment Information
+
+- Customer
+- Project
+- Invoice
+- Payment ID
+- Expected amount
+- Payment creation time
+
+### Section B — Customer Report
+
+- Submitted UTR
+- Reported amount
+- Payment date
+- Notes
+- Optional evidence attachment
+
+### Section C — Bank Verification
+
+- Receiving account summary
+- Verified credited amount
+- Bank reference
+- Actual credit date
+- Reviewer notes
+- Potential duplicate warning
+- Verification decision
+
+## 11.4 Admin Action Panel
+
+Buttons:
+
+- Start Review
+- Request Clarification
+- Confirm Payment Received
+- Reject Verification Request
+- Escalate
+
+Only show actions available to the logged-in role.
+
+## 11.5 Confirm Payment Dialog
+
+Before approval, present:
+
+"Confirm Verified Bank Credit"
+
+Show the exact customer, payment reference, amount and receiving account.
+
+Require acknowledgement:
+
+"I have independently checked the receiving bank's transaction history and confirmed this credit."
+
+Require the appropriate authentication and approvals.
+
+Submit to the real backend verification endpoint.
+
+Never implement a visual-only approval that marks a payment successful locally.
+
+## 11.6 Completed Verification
+
+After successful backend confirmation:
+
+Show:
+
+- Verified badge
+- Confirmation timestamp
+- Reviewer identity, where authorised
+- Receipt availability
+- Updated invoice balance
+
+Show a clear error if the backend rejects the verification.
+
+Never simulate success in the live interface.
+
+---
+
+# 12. MISSING PAYMENT & DISPUTE EXPERIENCE
+
+Create two separate experiences.
+
+## 12.1 Customer Experience
+
+Page title:
+
+"Can't See Your Payment?"
+
+Supporting text:
+
+"If you have already paid but your payment is awaiting verification, submit your UPI reference so ForgeX can review it."
+
+Create a simple, mobile-friendly form.
+
+Fields:
+
+- Payment ID — prefilled
+- UTR / UPI Transaction ID
+- Amount paid
+- Payment date
+- Additional details
+- Optional supporting attachment
+
+Primary button:
+
+"Request Verification"
+
+After submission, show the case reference and status.
+
+Do not display a paid confirmation at this stage.
+
+## 12.2 Finance HQ Dispute View
+
+Use a dedicated detail page or drawer.
+
+Display:
+
+- Case history
+- Customer's report
+- Payment information
+- Related bank statement matches
+- Admin investigation notes
+- Current case owner
+- Timeline
+
+Provide actions with appropriate permissions.
+
+## 12.3 Dispute Status Tracker
+
+Design a readable timeline:
+
+Submitted → Under Review → Clarification / Verification → Resolved
+
+A rejected or unresolved case should have its own truthful status rather than appearing successful.
+
+Keep customer messages respectful and specific.
+
+---
+
+# 13. RECEIVING ACCOUNTS — SECURE DESIGN
+
+Create a dedicated page:
+
+Settings → Receiving Accounts
+
+## 13.1 Accounts Overview
+
+Use premium account cards.
+
+Each card should show:
+
+- Bank name
+- Account holder name
+- Masked account number
+- IFSC, where authorised
+- UPI ID
+- Active/inactive status
+
+Use bank-neutral visual styling.
+
+Do not imply direct bank connectivity merely because an account is configured.
+
+## 13.2 Add Bank Account
+
+Build a secure configuration form:
+
+- Account holder name
+- Bank name
+- Bank account number
+- Confirm account number
+- IFSC
+- Account type
+- Receiving UPI ID
+- Payee display name
+
+Provide clear validation and error messages.
+
+## 13.3 Security Requirements
+
+- Never display full account numbers by default.
+- Never expose encryption keys in the UI.
+- Send sensitive form data only to authorised backend endpoints over HTTPS.
+- Require additional confirmation for account changes.
+- Mask sensitive fields in the UI.
+- Record administrative changes.
+
+The public-facing checkout may reveal the receiving UPI ID and payee name because those are necessary for payment routing.
+
+Never imply that entering a bank account automatically enables transaction reading or bank-credit verification.
+
+---
+
+# 14. API CREDENTIAL MANAGEMENT
+
+Create a premium developer-oriented API management page.
+
+## 14.1 Connected Applications
+
+Display:
+
+- Application name
+- Application ID
+- Environment
+- Status
+- Permissions
+- Last usage
+- Created date
+
+Supported ForgeX applications include:
+
+- Admin HQ
+- Finance HQ
+- Employee HQ
+- Client App Backend
+
+## 14.2 API Credentials Page
+
+Provide:
+
+- Create New Server Credential
+- Select Application
+- Assign Permission Scopes
+- Set Expiration
+- Rotate Credential
+- Revoke Credential
+
+Never display raw private API keys again after their initial one-time presentation.
+
+Provide warnings when revoking active credentials.
+
+Do not expose private API secrets to frontend application code.
+
+## 14.3 Developer Documentation UI
+
+Create a clean developer documentation section.
+
+Include:
+
+- API introduction
+- Authentication
+- Payment request APIs
+- Transaction status APIs
+- Verification APIs
+- Receipt APIs
+- Example requests
+- Error responses
+- Integration guides
+
+Use professional code examples and copy buttons.
+
+Any example credentials must be clearly identified as synthetic, nonfunctional examples.
+
+---
+
+# 15. CUSTOMERS PAGE
+
+Create an organised customer management interface.
+
+### Customer Table
+
+Show:
+
+- Customer ID
+- Name
+- Associated projects
+- Outstanding invoice balance
+- Verified payments
+- Last payment activity
+- Status
+
+### Customer Detail View
+
+Sections:
+
+- Overview
+- Projects
+- Invoices
+- Payments
+- Verification Cases
+- Receipts
+
+Provide controlled access to private information.
+
+Do not expose customer information to unauthorised employees.
+
+---
+
+# 16. INVOICE & RECEIPT MANAGEMENT
+
+## 16.1 Invoice List
+
+Display:
+
+- Invoice number
+- Customer
+- Project
+- Invoice amount
+- Verified paid amount
+- Balance due
+- Due date
+- Status
+
+## 16.2 Invoice Preview
+
+Create a high-quality document preview.
+
+Include:
+
+- ForgeX identity
+- Customer details
+- Invoice line items
+- Payment schedule
+- Amount due
+- Tax information, if applicable
+
+Do not invent legal or GST registration details.
+
+## 16.3 Receipt Preview
+
+Create a clean, professional receipt design.
+
+Include:
+
+- Receipt number
+- Payment ID
+- Customer
+- Project
+- Invoice reference
+- Amount received
+- Payment verification date
+- Relevant bank reference
+- Business identity
+
+Use print-friendly layouts.
+
+Provide a Download PDF action backed by the receipt API.
+
+Never show a paid receipt for an unverified payment.
+
+---
+
+# 17. FINANCIAL ANALYTICS
+
+Create professional visual analytics.
+
+Charts:
+
+1. Verified collections over time
+2. Advance vs milestone vs final payments
+3. Outstanding invoice trends
+4. Payment verification case volume
+5. Verification turnaround time
+6. Dispute resolution performance
+
+Use real database values.
+
+Support date filters.
+
+Provide descriptive legends and accessible chart text.
+
+For small datasets, prefer concise tables or summaries rather than misleading visualisations.
+
+### Important
+
+Do not show "Settlement Received" or settlement-cycle reporting unless the underlying system actually has settlement information.
+
+For direct UPI collections, label applicable reports:
+
+**Verified Bank Credits**
+
+or
+
+**Verified Collections**
+
+---
+
+# 18. NOTIFICATION CENTER
+
+Create a polished notification panel.
+
+Categories:
+
+- Payment Requests
+- Customer Payment Reports
+- Verification Required
+- Payment Verified
+- Disputes
+- Security Alerts
+- Application Integrations
+
+Support:
+
+- Unread indicators
+- Mark as Read
+- Open Related Record
+- Notification timestamps
+- Filtering
+
+Avoid duplicate notifications.
+
+Do not display confidential details in previews accessible to unauthorised users.
+
+---
+
+# 19. SECURITY & AUDIT LOGS PAGE
+
+Create a visually clear administrative security page.
+
+Show:
+
+- User
+- Action
+- Resource
+- Timestamp
+- Result
+- Relevant request or event reference
+
+Provide filters.
+
+Audit events should include:
+
+- Receiving account changes
+- API credential management
+- Role changes
+- Payment verification decisions
+- Receipt creation
+- Security-sensitive configuration changes
+
+Use clear event labels.
+
+Do not permit ordinary users to modify or erase financial audit logs.
+
+---
+
+# 20. FINANCE HQ UI INTEGRATION
+
+Create an interface that can be embedded in or linked from Finance HQ.
+
+Finance HQ users should have access to:
+
+- Financial summary
+- Verification queue
+- Verified transactions
+- Outstanding invoices
+- Receipts
+- Reconciliation
+- Dispute management
+
+The visual language must match 4XPay.
+
+However, Finance HQ should not unnecessarily duplicate the full Super Admin interface.
+
+Permissions must be enforced by the backend.
+
+---
+
+# 21. ADMIN HQ & EMPLOYEE HQ EXPERIENCE
+
+## Admin HQ
+
+Provide UI components for:
+
+- Creating project payment schedules
+- Generating payment requests
+- Viewing advance payment status
+- Tracking invoice balances
+- Reviewing associated receipts
+
+## Employee HQ
+
+Provide simplified project-payment status components.
+
+Show only relevant information.
+
+Do not expose sensitive bank settings, API keys or financial approval functionality.
+
+Use consistent design tokens across ForgeX applications.
+
+---
+
+# 22. RESPONSIVE DESIGN
+
+The complete 4XPay application must work smoothly on:
+
+- Large desktop monitors
+- Standard laptops
+- Tablets
+- Android phones
+- iPhones
+
+Suggested breakpoints:
+
+- Mobile: below 640px
+- Tablet: 640–1023px
+- Desktop: 1024px and above
+- Wide desktop: 1440px and above
+
+### Desktop
+
+Use full dashboard navigation and structured financial tables.
+
+### Tablet
+
+Use a collapsible navigation system and adaptive content grids.
+
+### Mobile
+
+Use:
+
+- Compact page headers
+- Drawer-based navigation
+- Responsive cards
+- Condensed transaction lists
+- Full-screen detail views where needed
+- Touch-friendly controls
+- Sticky primary actions where appropriate
+
+Do not simply shrink a desktop dashboard.
+
+Redesign complex tables into mobile-friendly list cards when necessary.
+
+Maintain readable financial information.
+
+Avoid horizontal overflow.
+
+---
+
+# 23. MICRO-INTERACTIONS & ANIMATIONS
+
+Introduce refined motion throughout the application.
+
+Suggested behaviours:
+
+- Hover transitions: 150–200ms
+- Modal transitions: approximately 200ms
+- Sidebar expansion: smooth, restrained
+- Skeleton loading for asynchronous data
+- Subtle chart updates
+- Button loading indicators
+- Smooth detail-drawer transitions
+- Brief payment verification success animation
+- Clear focus states
+
+Do not animate sensitive financial values in a way that causes confusion.
+
+Support reduced-motion preferences.
+
+Avoid distracting effects and large animation bundles.
+
+---
+
+# 24. EMPTY, LOADING & ERROR STATES
+
+Every important page must handle:
+
+- Initial loading
+- No records
+- Filter with zero results
+- Network disconnected
+- API timeout
+- Unauthorised access
+- Data fetch failure
+- Incomplete configuration
+
+### Example Empty State
+
+Title:
+
+"No payment requests yet"
+
+Description:
+
+"Create your first payment request to begin tracking client payments."
+
+Action:
+
+"Create Payment Request"
+
+### Example Verification Error
+
+Title:
+
+"Unable to confirm payment"
+
+Description:
+
+"The verification could not be completed. No successful payment confirmation has been recorded."
+
+Action:
+
+"Review Details"
+
+Do not falsely mark payments verified after API failures.
+
+---
+
+# 25. ACCESSIBILITY & USABILITY
+
+Implement accessible design standards.
+
+Requirements:
+
+- Proper keyboard navigation
+- Visible focus states
+- Accessible colour contrast
+- Semantic HTML
+- Screen-reader-friendly labels
+- Proper dialog focus management
+- Descriptive form errors
+- Accessible charts and tables
+- Mobile touch targets
+- Reduced-motion support
+- Clear state announcements
+
+Aim for WCAG 2.2 AA where applicable.
+
+Do not communicate success or failure using colour alone.
+
+---
+
+# 26. FRONTEND SECURITY REQUIREMENTS
+
+The redesign must not introduce security vulnerabilities.
+
+Never expose:
+
+- BANK_ENCRYPTION_KEY
+- RECEIPT_SIGNING_SECRET
+- Private API keys
+- Database credentials
+- Sensitive internal configuration
+- Unmasked banking information
+
+Use real authenticated backend endpoints.
+
+Do not rely on UI-only permission checks.
+
+Do not create client-side functions that can arbitrarily mark a payment as successful.
+
+Any bank verification must follow the existing server-side approval process.
+
+Do not store sensitive credentials in localStorage.
+
+Use suitable session management and secure browser practices.
+
+---
+
+# 27. TESTING & QUALITY ASSURANCE
+
+After implementation, test:
+
+### Layout
+- Desktop responsiveness
+- Tablet responsiveness
+- Mobile responsiveness
+- Dark and light themes
+
+### Navigation
+- Sidebar links
+- Breadcrumbs
+- Detail screens
+- Back navigation
+- Authentication redirects
+
+### Payments
+- Payment request creation
+- Unique Payment ID display
+- QR presentation
+- Payment status rendering
+- Missing-payment flow
+- Verified receipt flow
+
+### Finance
+- Verification queue
+- Admin confirmation dialog
+- Rejected verification cases
+- Duplicate references
+- Transaction filters
+
+### Security
+- Role-specific navigation
+- Sensitive-field masking
+- Protected routes
+- Unauthorised actions
+- API secret exposure
+
+### UX
+- Loading states
+- Empty states
+- Error messages
+- Form validation
+- Keyboard accessibility
+- Screen-reader labels
+
+Use browser automation where feasible.
+
+Do not report tests as passed unless they were actually executed.
+
+---
+
+# 28. IMPLEMENTATION WORKFLOW
+
+Follow this order.
+
+## Stage 1 — Repository Audit
+
+Inspect the existing frontend and backend integration.
+
+Identify current screens, routes, reusable components, styles and API contracts.
+
+Do not remove working functionality.
+
+## Stage 2 — Design System
+
+Create design tokens, shared components, typography and visual foundations.
+
+## Stage 3 — Main Dashboard
+
+Redesign:
+
+- Application shell
+- Sidebar
+- Top navigation
+- Overview metrics
+- Analytics
+- Recent transactions
+
+## Stage 4 — Payment Operations
+
+Redesign:
+
+- Transactions
+- Payment Requests
+- QR Code Manager
+- Payment Details
+
+## Stage 5 — Customer Checkout
+
+Implement the premium responsive UPI checkout and verification-status experience.
+
+## Stage 6 — Verification Operations
+
+Build:
+
+- Finance verification queue
+- Verification details
+- Confirmation dialogs
+- Missing-payment cases
+- Dispute workflows
+
+## Stage 7 — Administrative Screens
+
+Implement:
+
+- Receiving Accounts
+- Customers
+- Invoices
+- Receipts
+- API Credentials
+- Security
+- Settings
+
+## Stage 8 — Responsive Refinement
+
+Optimise mobile, tablet and desktop layouts.
+
+## Stage 9 — Integration & Testing
+
+Connect the redesigned components to existing APIs.
+
+Fix broken links, errors, accessibility problems and regressions.
+
+## Stage 10 — Final Review
+
+Verify feature completeness and overall visual consistency.
+
+---
+
+# 29. FINAL DELIVERABLES
+
+Deliver:
+
+1. A complete ForgeX 4XPay design system.
+2. Fully redesigned application shell.
+3. Premium Super Admin Dashboard.
+4. Professional transaction management UI.
+5. Modern UPI checkout.
+6. Payment QR interface.
+7. Finance verification dashboard.
+8. Missing-payment and dispute screens.
+9. Secure receiving-account configuration UI.
+10. Customer, invoice and receipt interfaces.
+11. API management dashboard.
+12. Responsive mobile layouts.
+13. Accessible UI components.
+14. Automated UI tests.
+15. Updated component documentation.
+
+Create a document:
+
+`FORGEX_4XPAY_UI_UX_REPORT.md`
+
+Include:
+
+- Design decisions
+- Components created
+- Pages redesigned
+- APIs connected
+- Responsive improvements
+- Accessibility improvements
+- Tests performed
+- Remaining limitations
+
+---
+
+# 30. FINAL INSTRUCTIONS TO CODEX
+
+You must implement the UI/UX in the actual repository, not merely produce written recommendations.
+
+Before editing, inspect the project and identify the existing routes and components.
+
+Preserve the existing backend architecture and functional payment workflows.
+
+Do not fabricate payment records, bank connections, successful verifications or financial statistics.
+
+Use realistic loading and empty states when real data is unavailable.
+
+The interface must feel cohesive across every module.
+
+Every button, menu, table action and interactive component should work through the intended route or backend API.
+
+If a backend capability is missing, identify it clearly rather than silently simulating success.
+
+Optimise performance, security, accessibility and maintainability.
+
+### DESIGN QUALITY TARGET
+
+The overall design quality should be comparable to a premium fintech SaaS product, with the usability and clarity associated with Razorpay or Stripe, but a completely original ForgeX brand identity.
+
+The experience should feel reliable, beautiful, polished and professional.
+
+### BEGIN EXECUTION
+
+Start with:
+
+1. Repository inspection
+2. UI/UX audit
+3. Design system definition
+4. Main application shell redesign
+5. Dashboard implementation
+
+Then continue through the remaining stages.
+
+**Build the complete ForgeX 4XPay premium UI/UX experience.**

@@ -1,0 +1,138 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-display: 'Plus Jakarta Sans', 'DM Sans', system-ui, -apple-system, sans-serif;
+    --font-sans: 'DM Sans', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+    /* ForgeX 4XPay Design Tokens */
+    --fxp-navy: #101828;
+    --fxp-indigo: #4F46E5;
+    --fxp-indigo-deep: #3538CD;
+    --fxp-indigo-soft: #EEF2FF;
+    --fxp-cyan: #06B6D4;
+    --fxp-canvas: #F8FAFC;
+    --fxp-surface: #FFFFFF;
+    --fxp-surface-muted: #F1F5F9;
+    --fxp-text: #0F172A;
+    --fxp-text-muted: #64748B;
+    --fxp-border: #E2E8F0;
+  }
+
+  .dark {
+    --fxp-canvas: #060B16;
+    --fxp-surface: #0D1424;
+    --fxp-surface-muted: #141E33;
+    --fxp-text: #F1F5F9;
+    --fxp-text-muted: #94A3B8;
+    --fxp-border: #1E293B;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--fxp-canvas);
+    color: var(--fxp-text);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  button:not(:disabled),
+  a[href],
+  select:not(:disabled) {
+    cursor: pointer;
+  }
+
+  *:focus-visible {
+    outline: 2px solid #4F46E5;
+    outline-offset: 2px;
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Clean subtle fintech backdrop for centered auth screen */
+.auth-backdrop {
+  background-color: #F8FAFC;
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(79, 70, 229, 0.08) 0%, rgba(6, 182, 212, 0.04) 40%, transparent 72%);
+}
+
+.dark .auth-backdrop {
+  background-color: #060B16;
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(79, 70, 229, 0.16) 0%, rgba(6, 182, 212, 0.06) 42%, transparent 72%);
+}
+
+/* Clean focus rings for inputs */
+.forge-input {
+  transition: border-color 150ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.forge-input:focus {
+  outline: none;
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.14);
+}
+
+.dark .forge-input:focus {
+  border-color: #6366F1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.22);
+}
+
+/* Drawer / modal entrance */
+@keyframes fxpDrawerIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.fxp-drawer-in {
+  animation: fxpDrawerIn 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fxpFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fxp-fade-in {
+  animation: fxpFadeIn 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fxp-drawer-in,
+  .fxp-fade-in {
+    animation: none !important;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

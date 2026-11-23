@@ -1,0 +1,1084 @@
+# FORGEX 4XPAY — COMPLETE DEVELOPMENT MASTER PROMPT
+
+## ROLE AND RESPONSIBILITIES
+
+Act as a team of highly experienced professionals:
+
+- Senior FinTech Software Architect
+- Senior TypeScript / NestJS Backend Developer
+- PostgreSQL Database Architect
+- Application Security Engineer
+- Payment Systems Engineer
+- React UI/UX Developer
+- API Integration Specialist
+- Quality Assurance and Testing Engineer
+- DevOps and Cloud Deployment Engineer
+
+Your task is to design and implement **ForgeX 4XPay**, a standalone, self-hosted UPI payment collection and management platform developed specifically for the ForgeX business ecosystem.
+
+Treat this as a real financial software engineering project, not a generic demonstration website.
+
+Develop clean, maintainable, modular, documented and tested software.
+
+Do not claim features work unless their implementation and tests demonstrate that they work.
+
+---
+
+# PART 1 — PROJECT VISION
+
+## 1.1 Project Name
+
+**ForgeX 4XPay**
+
+Category: Private UPI Payment Collection, Verification, Invoicing and Management System.
+
+## 1.2 Main Objective
+
+Create an independent payment management service that ForgeX can integrate into:
+
+1. ForgeX Admin HQ
+2. ForgeX Finance HQ
+3. ForgeX Employee HQ
+4. ForgeX Client Application
+5. Future authorised ForgeX applications
+
+All applications must use the same central 4XPay backend.
+
+Do not create separate databases or independent payment engines for each application.
+
+## 1.3 Important Business Requirement
+
+The initial version must NOT use:
+
+- Razorpay
+- Cashfree
+- PayU
+- Third-party payment gateway SDKs
+- Unofficial PhonePe APIs
+- Unauthorised bank account access
+- Bank login automation or screen scraping
+
+ForgeX will use its own configured UPI receiving address.
+
+The customer completes the actual payment through an installed UPI application, such as PhonePe, Google Pay or BHIM.
+
+4XPay is responsible for generating payment requests, initiating UPI intents, tracking records, managing verification and issuing receipts.
+
+Actual money movement happens through the existing UPI banking network.
+
+Do not present 4XPay as a licensed bank, UPI network participant or payment aggregator.
+
+---
+
+# PART 2 — TECHNOLOGY STACK
+
+Use the following stack unless an alternative is technically justified.
+
+### Backend
+- Node.js with TypeScript
+- NestJS
+- RESTful APIs
+- OpenAPI / Swagger
+- Input validation with DTOs
+- Modular service architecture
+
+### Database
+- PostgreSQL
+- Prisma ORM
+- Database migrations
+- Transactional consistency and constraints
+
+Supabase-hosted PostgreSQL is acceptable.
+
+### Authentication
+- Secure user authentication
+- Short-lived access tokens
+- Refresh-token controls where applicable
+- Multi-factor authentication for privileged users
+- Role-based access control
+- Application-specific server credentials
+
+### Frontend
+- React with TypeScript
+- Tailwind CSS
+- Accessible responsive components
+- Professional dark and light theme support
+
+### Additional Infrastructure
+- Redis only if justified for rate limiting or queues
+- Secure background job processing
+- Protected storage for receipt documents
+- Centralised application logging
+- Secure secret management
+
+Use a modular monolith for the initial implementation, with clear module boundaries so services can be separated later if necessary.
+
+---
+
+# PART 3 — SUPER ADMIN AND BANK CONFIGURATION
+
+## 3.1 Create a Super Admin Dashboard
+
+The central 4XPay application must include its own management dashboard.
+
+Create the navigation:
+
+- Overview
+- Transactions
+- Payment Requests
+- Pending Verification
+- Receiving Accounts
+- Customers
+- Invoices
+- Receipts
+- Missing Payments / Disputes
+- Connected Applications
+- API Credentials
+- Audit Logs
+- Security Settings
+- System Health
+
+## 3.2 Receiving Bank Account Configuration
+
+Create a dedicated page:
+
+Settings → Payment Configuration → Receiving Accounts.
+
+The authorised Super Admin must be able to register:
+
+- Account holder name
+- Bank name
+- Account number
+- IFSC
+- Account type
+- Receiving UPI ID
+- Display payee name
+- Optional internal account label
+- Active/inactive status
+- Creation and last-modified timestamps
+
+Do not hardcode real bank details.
+
+The application must initially show an empty setup state, not fictional bank information disguised as production data.
+
+### Security Requirements
+
+- Transmit account information using HTTPS.
+- Validate formats server-side.
+- Encrypt sensitive bank details using authenticated encryption and properly managed encryption keys.
+- Store encryption keys outside the database and source code.
+- Mask the account number in normal dashboard views.
+- Restrict account creation, editing and activation to authorised Super Admins.
+- Require reauthentication or MFA for sensitive changes.
+- Record every change in an immutable-style audit trail.
+- Never expose full account information through customer-facing APIs.
+- Never collect net-banking passwords, UPI PINs or banking OTPs.
+
+The backend must support multiple receiving accounts, but initially use one explicitly selected active UPI receiving account.
+
+### Important Verification Limitation
+
+Saving an account number and UPI ID does not establish authenticated connectivity to the bank.
+
+Do not implement fake bank balance checks, fake account ownership checks, or fake transaction verification.
+
+Allow the Super Admin to attest that the receiving details were checked through their actual banking application. Label this as a manual configuration check, not an API-based bank verification.
+
+---
+
+# PART 4 — CUSTOMER AND PROJECT STRUCTURE
+
+4XPay must distinguish customers, projects, invoices, payment requests and individual payment attempts.
+
+Example:
+
+Customer: Satyam
+
+Customer ID: FXC-0045
+
+Project: Website Development
+
+Project ID: FXPR-0023
+
+Total Contract Value: ₹20,000
+
+Advance Due: ₹5,000
+
+Remaining Balance After Verified Advance: ₹15,000
+
+These are illustrative test values only.
+
+Customer IDs must never be used as transaction IDs.
+
+Project and customer information may originate from ForgeX Admin HQ through authenticated APIs.
+
+4XPay should keep the minimum customer/project metadata needed for billing and payment records.
+
+Do not let client-supplied amounts override authorised invoice amounts.
+
+---
+
+# PART 5 — UNIQUE PAYMENT ID GENERATION
+
+This is a critical requirement.
+
+## 5.1 Payment Request ID vs Payment ID
+
+Design the system with separate identifiers.
+
+**Payment Request ID:** Represents an amount due against a particular invoice or instalment.
+
+**Payment ID:** Represents an individual payment attempt initiated by a customer.
+
+When the customer deliberately initiates a new payment attempt, the backend generates a new unique Payment ID.
+
+Example:
+
+Customer ID: FXC-0045
+
+Invoice ID: FXINV-0102
+
+Payment Request ID: FXREQ-2026-0042
+
+First Payment ID: FXPAY-2026-A81F
+
+Second Payment ID: FXPAY-2026-B93K
+
+Even when both attempts relate to the same advance invoice, they must have different Payment IDs.
+
+Store internal UUIDs as primary keys and generate unique, human-readable public references.
+
+Enforce database uniqueness.
+
+### Duplicate Click Protection
+
+The client may double-click Pay Now or experience network retries.
+
+Implement idempotency keys to ensure accidental duplicate requests do not create unwanted payment attempts.
+
+An intentional new retry may generate a separate Payment ID.
+
+### Banking Reference
+
+The UPI network may generate a separate UTR or transaction reference.
+
+This external bank reference must be stored independently of the ForgeX-generated Payment ID.
+
+Never assume they are identical.
+
+---
+
+# PART 6 — UPI PAYMENT GENERATION ENGINE
+
+Create a UPI payment service that reads the active receiving account configuration from the backend.
+
+## 6.1 Payment Initiation
+
+When the customer clicks Pay Advance:
+
+1. Authenticate the customer.
+2. Confirm ownership of the project/invoice.
+3. Check the amount currently due.
+4. Generate a unique Payment ID.
+5. Create a pending payment attempt.
+6. Retrieve the configured receiving UPI ID.
+7. Generate a supported UPI payment URI.
+8. Generate a QR code representing the URI.
+9. Return the checkout information to the customer app.
+
+## 6.2 UPI URI
+
+Support the appropriate UPI fields:
+
+- `pa` — Payee UPI address
+- `pn` — Payee name
+- `am` — Expected amount
+- `cu` — Currency INR
+- `tr` — Supported transaction reference
+- `tn` — Payment note
+
+Follow applicable UPI linking specifications.
+
+Percent-encode parameter values correctly.
+
+Do not invent payment-provider-specific fields.
+
+Do not assume UPI applications will preserve every optional reference or return a reliable payment result.
+
+Do not assume a personal UPI receiving ID has all merchant QR capabilities.
+
+## 6.3 QR Code
+
+Create a QR code containing the generated UPI URI.
+
+QR codes must correspond to the correct:
+
+- Payment ID
+- Amount
+- Payee
+- Receiving UPI address
+- Invoice
+
+Display the expected payment amount prominently.
+
+Allow downloading the QR image where appropriate.
+
+Keep the QR payment attempt valid only within the configured application window, but recognise that expiry in 4XPay cannot itself stop a payer from using a previously saved UPI QR.
+
+Handle late payments through reconciliation.
+
+## 6.4 Mobile Payment Options
+
+Provide:
+
+- Pay via installed UPI application
+- Scan QR using another device
+- Copy the supported UPI payment address
+- View payment instructions
+- Report payment already made
+
+Provide graceful fallback if no UPI app is available.
+
+Do not collect the customer's UPI PIN.
+
+---
+
+# PART 7 — PAYMENT STATUS ENGINE
+
+Implement an explicit state machine.
+
+Suggested states:
+
+- CREATED
+- AWAITING_PAYMENT
+- PAYMENT_REPORTED
+- VERIFICATION_PENDING
+- REVIEW_REQUIRED
+- VERIFIED
+- FAILED_REPORTED
+- EXPIRED
+- CANCELLED
+- DISPUTED
+
+Distinguish customer-reported failure from verified failure.
+
+Do not equate an expired request with proof that no money arrived.
+
+Only a verified transaction can produce a paid receipt and corresponding ledger credit.
+
+The backend, not the client app, must control payment status transitions.
+
+A customer returning from PhonePe or Google Pay must not automatically change the payment to VERIFIED.
+
+---
+
+# PART 8 — HYBRID PAYMENT VERIFICATION
+
+This is one of the most important 4XPay modules.
+
+The initial system must operate without any external bank or payment gateway API.
+
+Therefore, implement two supported verification workflows:
+
+## 8.1 Authorised Manual Bank Verification
+
+When the customer reports having paid:
+
+1. The payment moves to VERIFICATION_PENDING.
+2. Finance HQ receives a verification task.
+3. The finance administrator checks the actual receiving bank or UPI transaction history through an authorised banking application.
+4. The administrator records the payment reference, credited amount and transaction date.
+5. The backend checks whether this reference has already been assigned to another successful payment.
+6. The administrator explicitly confirms the credit.
+7. The backend records who verified it and when.
+8. The payment moves to VERIFIED.
+9. A receipt is generated.
+10. Finance HQ and the Client App are updated.
+
+Prevent unauthorised users from calling the verification endpoint.
+
+For higher-value payments, support configurable second-person approval.
+
+## 8.2 Bank Statement Reconciliation
+
+Build a secure financial statement import feature.
+
+Support CSV import initially.
+
+The importing administrator must explicitly select the receiving bank account and map statement columns.
+
+Relevant information may include:
+
+- Credit/debit direction
+- Transaction amount
+- Bank reference / UTR
+- Transaction date
+- Description
+- Receiving account
+- Source file identification
+
+Normalize the data carefully.
+
+Only credit entries may be considered potential incoming payments.
+
+Do not match transactions solely by amount.
+
+Use exact bank references where available, together with amount, receiving account and other available corroborating details.
+
+If multiple candidate payment requests exist, mark them as ambiguous and require manual review.
+
+If a statement does not provide sufficient information, retain the payment in REVIEW_REQUIRED.
+
+Reject or quarantine duplicate imported entries.
+
+Do not permit the same independently identified bank credit to settle two unrelated payment obligations.
+
+Provide a clear distinction between:
+
+- Matched
+- Potential match
+- Ambiguous
+- Unmatched
+- Confirmed
+- Rejected
+
+Imported bank records are sensitive financial data and must have restricted access and retention controls.
+
+### Absolute Rule
+
+Without authenticated bank transaction access, do not create any function that claims to verify incoming funds directly from PhonePe or a bank in real time.
+
+Never fabricate such an API.
+
+---
+
+# PART 9 — MISSING PAYMENT AND DISPUTE SYSTEM
+
+Create a Missing Payment button within the customer's payment details screen.
+
+The customer should be able to provide:
+
+- Associated Payment ID (automatically linked)
+- UPI transaction reference
+- Amount they claim to have paid
+- Approximate transaction time
+- Optional explanation
+
+The system creates a support/verification ticket.
+
+A customer-provided screenshot may be accepted as supporting information, but it must never be treated as conclusive payment evidence.
+
+Finance HQ receives a notification.
+
+Finance admins may:
+
+- Assign the ticket
+- Request clarification
+- Check bank records
+- Record a matching bank credit
+- Approve after verification
+- Reject with a reason
+- Reopen the investigation
+
+Notify the customer whenever the ticket status changes.
+
+Apply reasonable limits to duplicate dispute submissions.
+
+---
+
+# PART 10 — FINANCE HQ INTEGRATION
+
+Finance HQ should communicate with 4XPay over authenticated server-to-server APIs.
+
+Finance HQ must display:
+
+- Incoming payments
+- Pending payment requests
+- Verification queue
+- Verified transactions
+- Unmatched statement credits
+- Customer disputes
+- Invoices and receipts
+- Outstanding project balances
+- Payment reconciliation reports
+
+When a payment is verified, update the associated financial records transactionally.
+
+Use event-driven notifications where helpful.
+
+Make event delivery idempotent.
+
+The same payment must never create duplicate ledger credits or receipts.
+
+Maintain separate records for money expected, money reported by a customer, and money verified as received.
+
+---
+
+# PART 11 — ADMIN HQ INTEGRATION
+
+Admin HQ is responsible for creating client projects and recording agreed payment schedules.
+
+Example project:
+
+Website Development — ₹20,000
+
+Advance — ₹5,000
+
+Milestone Payment — ₹10,000
+
+Final Payment — ₹5,000
+
+Admin HQ sends authorised invoice or payment request information to 4XPay.
+
+4XPay creates the appropriate payment request.
+
+Once the payment is verified, Admin HQ receives the updated status.
+
+Admin HQ can display the paid and outstanding amounts, but must not independently overwrite the financial verification record.
+
+Support cancellation and revision of unpaid requests with a clear audit history.
+
+---
+
+# PART 12 — EMPLOYEE HQ INTEGRATION
+
+Employee HQ must have restricted access.
+
+An authorised employee may see:
+
+- Assigned project's payment status
+- Whether the advance has been verified
+- Outstanding payment milestones
+- Authorised invoice status
+
+Ordinary employees must not see:
+
+- Full receiving bank account numbers
+- Financial API secrets
+- Other clients' private transaction records
+- Sensitive banking configuration
+- Verification approval controls
+
+Use server-enforced permissions, not merely hidden UI buttons.
+
+---
+
+# PART 13 — CLIENT APPLICATION
+
+Create a modern client payment interface with:
+
+### Project Overview
+- Project name
+- Agreed project value
+- Project progress
+- Payment schedule
+- Amount already verified
+- Outstanding amount
+
+### Payment Screen
+- Payment category (advance, milestone or final)
+- Amount due
+- Unique Payment ID
+- UPI payment options
+- QR code
+- Payment status
+
+### Transaction History
+- Date
+- Amount
+- Payment ID
+- Status
+- Receipt availability
+
+### Support
+- Missing Payment
+- Transaction clarification
+- Payment-related notifications
+
+The client should see a clear message such as:
+
+"Payment initiated. We are awaiting verification of the incoming transfer."
+
+Do not use "Payment successful" until verification is complete.
+
+---
+
+# PART 14 — RECEIPTS AND INVOICES
+
+Create a document generation module.
+
+Support:
+
+- Invoice creation
+- Advance receipts
+- Milestone receipts
+- Final payment receipts
+- Downloadable PDFs
+- Payment history
+
+Receipt contents should include:
+
+- ForgeX business identity
+- Customer details
+- Project and invoice reference
+- Unique Payment ID
+- Paid amount
+- Verified transaction reference, where available
+- Verification date
+- Payment method
+- Relevant tax details where applicable
+- Receipt number
+
+Do not invent tax registration details.
+
+If GST registration or tax treatment is unknown, make the configuration explicit and require correct business information before producing tax-specific invoices.
+
+Store receipt files privately.
+
+Use authenticated, expiring download links.
+
+---
+
+# PART 15 — CENTRAL API MANAGEMENT
+
+4XPay must expose secure, documented APIs for other ForgeX applications.
+
+Create an API management page where Super Admin can:
+
+- Register an authorised application
+- Generate credentials
+- Assign API permissions
+- Disable an integration
+- Rotate credentials
+- Review API access logs
+- View usage and failure statistics
+
+API keys are for trusted backend integrations only.
+
+Never embed private API keys in a browser, frontend bundle or mobile APK.
+
+Store only securely hashed application API keys when plaintext retrieval is unnecessary.
+
+Display newly generated secrets once and provide a rotation mechanism.
+
+All credentials must have limited scopes.
+
+### Suggested API Endpoints
+
+Receiving account management:
+- POST /v1/admin/receiving-accounts
+- GET /v1/admin/receiving-accounts
+- PATCH /v1/admin/receiving-accounts/{id}
+- POST /v1/admin/receiving-accounts/{id}/activate
+
+Payments:
+- POST /v1/payment-requests
+- GET /v1/payment-requests/{id}
+- POST /v1/payment-requests/{id}/attempts
+- GET /v1/payments/{paymentId}
+- GET /v1/payments/{paymentId}/upi-qr
+- POST /v1/payments/{paymentId}/report
+
+Verification:
+- GET /v1/verification-queue
+- POST /v1/verifications/{paymentId}/confirm
+- POST /v1/verifications/{paymentId}/reject
+
+Finance:
+- POST /v1/reconciliation/imports
+- GET /v1/reconciliation/matches
+- GET /v1/transactions
+
+Documents:
+- GET /v1/invoices/{id}
+- GET /v1/payments/{paymentId}/receipt
+
+Disputes:
+- POST /v1/disputes
+- GET /v1/disputes/{id}
+- PATCH /v1/disputes/{id}
+
+Application management:
+- POST /v1/admin/applications
+- POST /v1/admin/applications/{id}/credentials
+- POST /v1/admin/credentials/{id}/revoke
+
+Define request/response schemas, error codes and permissions.
+
+Never accept a client-supplied field such as `verified: true` as authority.
+
+---
+
+# PART 16 — DATABASE DESIGN
+
+Use relational tables for:
+
+1. users
+2. roles
+3. user_role_assignments
+4. connected_applications
+5. application_credentials
+6. receiving_accounts
+7. customers
+8. projects
+9. invoices
+10. invoice_items
+11. payment_requests
+12. payment_attempts
+13. bank_transactions
+14. reconciliation_imports
+15. reconciliation_matches
+16. verification_actions
+17. financial_ledger_entries
+18. receipts
+19. payment_disputes
+20. notifications
+21. audit_logs
+
+Provide:
+
+- UUID primary keys
+- Unique business references
+- Foreign key constraints
+- Appropriate indexes
+- Referential integrity
+- Amounts stored as integer paise
+- Currency codes
+- Proper UTC timestamp storage
+- Consistent transaction boundaries
+
+Avoid floating-point money calculations.
+
+Implement reliable ledger accounting rules to ensure that verified credits are recorded once.
+
+Preserve transaction history when users change an invoice or receiving account.
+
+---
+
+# PART 17 — SECURITY ENGINEERING
+
+Security is essential.
+
+Implement:
+
+- HTTPS
+- Proper authentication
+- MFA for privileged operations
+- Role-based authorisation
+- Database access restrictions
+- Encryption for sensitive account details
+- Secure key management
+- API rate limiting
+- Request validation
+- Secure error handling
+- Audit logging
+- Protection from SQL injection
+- Cross-site scripting protection
+- CSRF protection where applicable
+- Secure session handling
+- Credential rotation
+- Dependency vulnerability checks
+- Backup and recovery procedures
+
+Use established cryptographic libraries.
+
+Do not implement custom cryptographic algorithms.
+
+Never log banking secrets or sensitive authentication tokens.
+
+Sensitive verification operations should be auditable and designed to prevent privilege escalation or unauthorised status modification.
+
+Separate development, testing and production environments.
+
+---
+
+# PART 18 — UI/UX DESIGN
+
+Use a premium professional financial dashboard style.
+
+Visual direction:
+
+- Clean typography
+- Modern navigation sidebar
+- Consistent spacing
+- Responsive layouts
+- Dark and light themes
+- Accessible contrast
+- Professional tables and filters
+- Clear payment status indicators
+- Minimal unnecessary animation
+- Smooth transitions
+- Skeleton loading states
+- Helpful empty states
+- Actionable error messages
+
+Do not build a generic dashboard containing decorative, non-functional buttons.
+
+Every control should connect to a working backend operation or be clearly marked as disabled until implemented.
+
+### Dashboard Overview
+
+Display real database-driven information:
+
+- Total verified collections
+- Outstanding invoices
+- Payments awaiting verification
+- Active disputes
+- Recent transactions
+- Reconciliation exceptions
+- Connected applications
+- Failed integration requests
+
+Never display fake revenue figures in production.
+
+### Receiving Account Page
+
+Create a high-quality secure configuration screen.
+
+Show the active receiving account with masked details.
+
+Include:
+
+- Add account
+- Edit account
+- Activate/deactivate
+- Change active receiving UPI
+- Account change history
+- Security confirmation before updates
+
+### Verification Queue
+
+Provide an efficient finance review interface.
+
+Show the expected amount, payment reference, associated invoice, customer, possible bank transaction match and verification evidence.
+
+Support approve/reject actions with audit trails.
+
+---
+
+# PART 19 — NOTIFICATION SYSTEM
+
+Implement internal event-based notifications for:
+
+- New payment request
+- Customer-reported payment
+- Verification required
+- Payment verified
+- Payment dispute created
+- Dispute status changed
+- Receipt available
+- Reconciliation exception
+- Security-sensitive configuration changes
+
+Provide in-app notifications first.
+
+Design optional email notification adapters for later.
+
+Use a background queue for reliable delivery where appropriate.
+
+Notification delivery failure must not change financial truth.
+
+A payment must remain VERIFIED even if the customer notification fails.
+
+---
+
+# PART 20 — TESTING REQUIREMENTS
+
+Create automated tests for:
+
+### Payment Identity
+- Unique Payment ID generation
+- Duplicate submission handling
+- Retry handling
+- Incorrect customer ownership
+
+### UPI
+- URI generation
+- Parameter encoding
+- QR generation
+- Missing receiving configuration
+- Invalid amounts
+
+### Verification
+- Unverified client claims
+- Manual bank-credit confirmation
+- Duplicate UTR/reference use
+- Incorrect payment amount
+- Partial payment
+- Overpayment
+- Ambiguous statement matches
+- Missing transaction references
+- Late payments
+- Multiple clients paying the same amount
+
+### Security
+- Unauthorised account configuration changes
+- API key misuse
+- Cross-customer access
+- Employee permission restrictions
+- Attempted payment-status manipulation
+- Sensitive data leakage
+
+### Accounting
+- Duplicate approval attempts
+- Concurrent verification
+- Receipt generation only after verification
+- Exactly-once ledger credit creation
+- Balance calculations
+- Dispute reconciliation
+
+Use synthetic test bank accounts and fictional transactions in test environments only.
+
+Test data must never be represented as real payment confirmations.
+
+---
+
+# PART 21 — DEPLOYMENT
+
+Prepare the application for secure deployment.
+
+Provide:
+
+- Docker configuration
+- Environment variable documentation
+- Database migrations
+- Secure production configuration
+- Health-check endpoints
+- Logging configuration
+- Backup strategy
+- Database restore instructions
+- Deployment checklist
+
+Do not commit real credentials to Git.
+
+Never configure unrestricted database access.
+
+Do not activate production payments by default.
+
+A production readiness review must cover security, account correctness, payment verification, operational support and applicable financial compliance obligations.
+
+---
+
+# PART 22 — FUTURE EXTENSIBILITY
+
+Keep the architecture modular enough to support:
+
+- Additional authorised UPI receiving accounts
+- Merchant bank or PSP integrations if later approved
+- Automated reconciliation through legitimate financial APIs
+- Card payments through an authorised provider if added later
+- Net-banking payment options if supported by a future provider
+- Refund workflows
+- Additional ForgeX applications
+- Advanced financial reports
+
+These are future features, not implementations to fabricate in Version 1.
+
+---
+
+# PART 23 — IMPORTANT DEVELOPMENT RULES
+
+1. Do not use fictional production bank details.
+2. Do not hardcode sensitive financial information.
+3. Do not claim PhonePe integration without a legitimate interface.
+4. Do not create fake bank verification results.
+5. Do not confuse Customer ID with Payment ID.
+6. Create a new Payment ID for every intentional payment attempt.
+7. Keep payment verification on the backend.
+8. Never issue a paid receipt for an unverified transfer.
+9. Keep all ForgeX applications connected to one central 4XPay service.
+10. Use complete, working features rather than decorative UI.
+11. Validate, test and document each completed module.
+12. Explain any capabilities that cannot work without external banking access.
+13. Preserve financial transaction history.
+14. Never allow arbitrary client-side payment success flags.
+15. Maintain clear separation between production functionality and testing simulations.
+
+---
+
+# PART 24 — IMPLEMENTATION ORDER
+
+Do not attempt to create the entire production system in one unreviewed step.
+
+Follow this sequence:
+
+**Phase 1: Foundation**
+- Create the monorepo/project structure.
+- Configure NestJS, TypeScript, Prisma and PostgreSQL.
+- Set up authentication and permissions.
+- Implement database migrations.
+- Create environment configuration.
+- Add automated test infrastructure.
+
+**Phase 2: Bank and UPI Configuration**
+- Implement Receiving Accounts.
+- Create the secure configuration UI.
+- Implement encryption and masking.
+- Add audit logging.
+- Configure an active receiving UPI account.
+
+**Phase 3: Payment Engine**
+- Create invoice and payment request models.
+- Implement unique Payment ID generation.
+- Build UPI URI and QR generation.
+- Create payment status endpoints.
+- Implement idempotency protections.
+
+**Phase 4: Verification and Reconciliation**
+- Build manual finance confirmation.
+- Add CSV statement import.
+- Implement bank-credit matching.
+- Add duplicate transaction controls.
+- Create missing-payment disputes.
+
+**Phase 5: Dashboard and Receipts**
+- Build Super Admin Dashboard.
+- Create transaction tables and filters.
+- Implement invoice and receipt PDFs.
+- Build internal notifications and reporting.
+
+**Phase 6: Ecosystem Integration**
+- Develop secured application APIs.
+- Integrate Admin HQ.
+- Integrate Finance HQ.
+- Integrate Employee HQ.
+- Integrate Client App.
+
+**Phase 7: Quality and Deployment**
+- Run integration tests.
+- Review security.
+- Test invalid and duplicate transactions.
+- Perform deployment readiness checks.
+- Document the complete system.
+
+---
+
+# FINAL INSTRUCTIONS TO CODEX
+
+First inspect the existing repository, if one is provided.
+
+Do not overwrite existing working code without understanding its purpose.
+
+Start with Phase 1.
+
+Before implementation, provide:
+
+1. A concise technical architecture explanation.
+2. A proposed repository folder structure.
+3. A PostgreSQL entity relationship design.
+4. A list of modules and their responsibilities.
+5. An API contract outline.
+6. A security threat model focused on payment fraud, credential leakage and unauthorised verification.
+7. The Phase 1 implementation checklist.
+
+Then implement Phase 1 in the repository.
+
+Create genuine source files, migrations, configuration, tests and README instructions.
+
+Run all feasible tests and report their results.
+
+Clearly distinguish implemented features, partially completed features and future phases.
+
+Do not stop after presenting a design or pseudocode.
+
+Our end goal is a real, secure, standalone, extensible **ForgeX 4XPay payment management backend**, capable of supporting our entire ForgeX software ecosystem without a commercial payment gateway integration in Version 1.

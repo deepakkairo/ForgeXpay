@@ -1,0 +1,8 @@
+{
+  "name": "ForgeX 4XPay",
+  "description": "Standalone self-hosted UPI payment collection, verification, invoicing, bank statement reconciliation, and central API management platform for the ForgeX business ecosystem.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

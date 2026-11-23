@@ -1,0 +1,2555 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full antialiased">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>forgeXPay — Merchant Gateway Portal &amp; Dashboard</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans (with italic weights for authentic wordmark), Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;1,400;1,500;1,700;1,800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            forge: {
+              navy: '#072146',
+              deep: '#040e21',
+              surface: '#071630',
+              blue: '#0d6efd',
+              cyan: '#00b8ff',
+              glow: '#25d0ff',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Lucide Icons & Chart.js CDNs -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* Authentic italic forgeXPay wordmark typography */
+    .fxp-wordmark-forge {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-style: italic;
+      letter-spacing: -0.04em;
+    }
+    .fxp-wordmark-x {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-style: italic;
+      letter-spacing: -0.04em;
+      background: linear-gradient(135deg, #25d0ff 0%, #00b8ff 45%, #0d6efd 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: inline-block;
+      padding-right: 0.04em;
+    }
+    .fxp-wordmark-pay {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 500;
+      font-style: italic;
+      letter-spacing: -0.025em;
+    }
+
+    /* Clean subtle fintech backdrop for centered auth screen */
+    .auth-backdrop {
+      background-color: #f8fafc;
+      background-image: radial-gradient(circle at 50% 0%, rgba(0, 184, 255, 0.08) 0%, rgba(13, 110, 253, 0.03) 38%, transparent 70%);
+    }
+    .dark .auth-backdrop {
+      background-color: #040e21;
+      background-image: radial-gradient(circle at 50% 0%, rgba(0, 184, 255, 0.12) 0%, rgba(13, 110, 253, 0.05) 40%, transparent 72%);
+    }
+
+    /* Clean focus rings */
+    .forge-input:focus {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.14);
+    }
+    .dark .forge-input:focus {
+      border-color: #00b8ff;
+      box-shadow: 0 0 0 3px rgba(0, 184, 255, 0.16);
+    }
+
+    /* Subtle standard view fade transition */
+    @keyframes subtleFade {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .fade-view {
+      animation: subtleFade 0.22s ease-out forwards;
+    }
+
+    /* Subtle OTP shake on wrong code */
+    @keyframes otpShake {
+      0%, 100% { transform: translateX(0); }
+      25%, 75% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+    }
+    .otp-shake {
+      animation: otpShake 0.28s ease-in-out;
+    }
+
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 999px; }
+  </style>
+</head>
+
+<body class="h-full bg-[#f8fafc] text-[#072146] dark:bg-[#040e21] dark:text-slate-100 overflow-x-hidden transition-colors duration-200 selection:bg-sky-500/20">
+
+  <!-- ==================== GLOBAL TOAST STACK ==================== -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-[120] flex flex-col gap-2 max-w-sm w-[calc(100%-2.5rem)] pointer-events-none"></div>
+
+  <!-- ================================================================== -->
+  <!-- VIEW 1: SIMPLE CENTERED AUTHENTICATION PORTAL                      -->
+  <!-- ================================================================== -->
+  <main id="auth-view" class="auth-backdrop min-h-screen w-full flex flex-col items-center justify-center px-4 py-10 relative fade-view">
+
+    <!-- Top-Right Light/Dark Mode Toggle -->
+    <div class="fixed top-4 right-4 sm:top-6 sm:right-6 z-20">
+      <button onclick="toggleTheme()" title="Toggle Light / Dark theme" class="p-2.5 rounded-xl bg-white dark:bg-[#071630] border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700 shadow-xs transition-colors">
+        <i data-lucide="moon" class="w-4 h-4 dark:hidden"></i>
+        <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+      </button>
+    </div>
+
+    <!-- Centered Auth Container (max-width ~440px) -->
+    <div class="w-full max-w-[440px]">
+
+      <!-- Centered forgeXPay Brand Lockup -->
+      <div class="flex flex-col items-center text-center mb-6">
+        <div id="auth-brand-logo" class="mb-2"></div>
+        <p class="text-xs font-medium tracking-wide uppercase text-slate-500 dark:text-slate-400">
+          Merchant Gateway Portal
+        </p>
+      </div>
+
+      <!-- Clean Elevated Auth Card -->
+      <div class="rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 shadow-sm p-6 sm:p-8">
+
+        <!-- Segmented Tab Switch: Sign In / Create Account -->
+        <div id="auth-tabs" class="grid grid-cols-2 p-1 rounded-xl bg-slate-100 dark:bg-[#0b1d3d] border border-slate-200/70 dark:border-slate-800 mb-6">
+          <button type="button" id="tab-btn-signin" onclick="switchAuthTab('signin')" class="py-2 text-sm font-semibold rounded-lg bg-white dark:bg-[#0f264f] text-[#072146] dark:text-white shadow-xs transition-colors">
+            Sign In
+          </button>
+          <button type="button" id="tab-btn-signup" onclick="switchAuthTab('signup')" class="py-2 text-sm font-semibold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+            Create Account
+          </button>
+        </div>
+
+        <!-- ==================== TAB A: SIGN IN ==================== -->
+        <div id="auth-panel-signin" class="space-y-4">
+          <!-- Google SSO ONLY (No GitHub, No Passkey) -->
+          <button type="button" onclick="handleGoogleAuth()" class="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0a1b38] hover:bg-slate-50 dark:hover:bg-[#0f2448] text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M23.745 12.27c0-.79-.07-1.54-.19-2.27h-11.3v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/>
+              <path fill="#34A853" d="M12.255 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96h-3.98v3.09C3.515 21.3 7.565 24 12.255 24z"/>
+              <path fill="#FBBC05" d="M5.525 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62h-3.98a11.86 11.86 0 000 10.76l3.98-3.09z"/>
+              <path fill="#EA4335" d="M12.255 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C18.205 1.19 15.495 0 12.255 0c-4.69 0-8.74 2.7-10.71 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"/>
+            </svg>
+            <span>Continue with Google</span>
+          </button>
+
+          <!-- Divider -->
+          <div class="relative flex items-center py-1">
+            <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+            <span class="mx-3 text-xs text-slate-400">or continue with email</span>
+            <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+          </div>
+
+          <form id="signin-form" class="space-y-4" novalidate>
+            <!-- Work Email -->
+            <div>
+              <label for="signin-email" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Work Email</label>
+              <div class="relative">
+                <i data-lucide="mail" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                <input id="signin-email" type="email" autocomplete="email" oninput="validateLiveEmail('signin-email', 'signin-email-ok')" placeholder="founder@company.com" class="forge-input w-full pl-10 pr-9 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0a1b38] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition-colors" />
+                <span id="signin-email-ok" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500">
+                  <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                </span>
+              </div>
+              <p id="signin-email-err" class="hidden mt-1 text-xs text-rose-500"></p>
+            </div>
+
+            <!-- Password + Eye Toggle + Caps Lock Warning -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="signin-password" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Password</label>
+                <button type="button" onclick="switchAuthTab('forgot')" class="text-xs font-semibold text-[#0d6efd] dark:text-[#25d0ff] hover:underline">Forgot password?</button>
+              </div>
+              <div class="relative">
+                <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                <input id="signin-password" type="password" autocomplete="current-password" onkeyup="checkCapsLock(event, 'signin-caps')" placeholder="Enter your password" class="forge-input w-full pl-10 pr-10 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0a1b38] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition-colors" />
+                <button type="button" onclick="togglePassword('signin-password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                  <i data-lucide="eye" class="w-4 h-4"></i>
+                </button>
+              </div>
+              <div id="signin-caps" class="hidden mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[11px] font-semibold">
+                <i data-lucide="alert-triangle" class="w-3 h-3"></i> Caps Lock is ON
+              </div>
+              <p id="signin-password-err" class="hidden mt-1 text-xs text-rose-500"></p>
+            </div>
+
+            <!-- Remember me + Enable 2FA Demo Toggle -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+              <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input id="signin-remember" type="checkbox" checked class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-[#0d6efd] focus:ring-[#0d6efd]" />
+                <span class="text-xs text-slate-600 dark:text-slate-400">Remember me</span>
+              </label>
+
+              <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                <span class="text-xs text-slate-600 dark:text-slate-400">Enable 2FA Verification Demo</span>
+                <input id="signin-2fa-toggle" type="checkbox" class="peer sr-only" />
+                <div class="w-8 h-4.5 rounded-full bg-slate-200 dark:bg-slate-700 peer-checked:bg-[#0d6efd] relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-3.5 after:h-3.5 after:rounded-full after:bg-white after:shadow-xs after:transition-transform peer-checked:after:translate-x-3.5"></div>
+              </label>
+            </div>
+
+            <!-- Primary Submit Button -->
+            <button id="signin-submit-btn" type="submit" class="w-full py-2.5 px-4 rounded-xl bg-[#072146] hover:bg-[#0b3166] dark:bg-[#0d6efd] dark:hover:bg-[#0b5ed7] text-white font-semibold text-sm shadow-xs transition-colors flex items-center justify-center gap-2">
+              <span>Sign In</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+          </form>
+
+          <!-- Subtle Bottom Utility Row: Auto-fill Demo & Launch Sandbox -->
+          <div class="pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-2.5">
+            <button type="button" onclick="autofillDemoLogin()" class="py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/70 dark:bg-[#0a1b38] hover:bg-slate-100 dark:hover:bg-[#0f2448] text-xs font-semibold text-slate-600 dark:text-slate-300 transition-colors flex items-center justify-center gap-1.5">
+              <i data-lucide="key-round" class="w-3.5 h-3.5 text-[#0d6efd] dark:text-[#25d0ff]"></i>
+              <span>Auto-fill Demo</span>
+            </button>
+            <button type="button" onclick="launchSandbox()" class="py-2 px-3 rounded-xl border border-sky-200 dark:border-sky-500/30 bg-sky-50/60 dark:bg-sky-500/10 hover:bg-sky-100/70 dark:hover:bg-sky-500/20 text-xs font-semibold text-[#072146] dark:text-sky-200 transition-colors flex items-center justify-center gap-1.5">
+              <i data-lucide="flask-conical" class="w-3.5 h-3.5 text-[#0d6efd] dark:text-[#25d0ff]"></i>
+              <span>Launch Sandbox</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ==================== TAB B: 2-STEP CREATE ACCOUNT ==================== -->
+        <div id="auth-panel-signup" class="hidden space-y-4">
+          <!-- Google SSO ONLY -->
+          <button type="button" onclick="handleGoogleAuth()" class="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0a1b38] hover:bg-slate-50 dark:hover:bg-[#0f2448] text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M23.745 12.27c0-.79-.07-1.54-.19-2.27h-11.3v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/>
+              <path fill="#34A853" d="M12.255 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96h-3.98v3.09C3.515 21.3 7.565 24 12.255 24z"/>
+              <path fill="#FBBC05" d="M5.525 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62h-3.98a11.86 11.86 0 000 10.76l3.98-3.09z"/>
+              <path fill="#EA4335" d="M12.255 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C18.205 1.19 15.495 0 12.255 0c-4.69 0-8.74 2.7-10.71 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"/>
+            </svg>
+            <span>Continue with Google</span>
+          </button>
+
+          <div class="relative flex items-center py-0.5">
+            <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+            <span class="mx-3 text-xs text-slate-400">or continue with email</span>
+            <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+          </div>
+
+          <!-- Simple 2-Step Progress Indicator -->
+          <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-[#0a1b38] border border-slate-200/70 dark:border-slate-800">
+            <div class="flex items-center gap-2 flex-1">
+              <span id="su-step-dot-1" class="w-5 h-5 rounded-full bg-[#0d6efd] text-white text-[11px] font-bold flex items-center justify-center">1</span>
+              <span class="text-xs font-semibold text-[#072146] dark:text-white">Account</span>
+            </div>
+            <div class="w-10 h-0.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+              <div id="su-step-bar" class="h-full w-0 bg-[#00b8ff] transition-all duration-200"></div>
+            </div>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span id="su-step-dot-2" class="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-[11px] font-bold flex items-center justify-center">2</span>
+              <span id="su-step-label-2" class="text-xs font-semibold text-slate-400">Business</span>
+            </div>
+          </div>
+
+          <form id="signup-form" novalidate>
+            <!-- STEP 1 -->
+            <div id="su-step-1" class="space-y-3.5">
+              <div>
+                <label for="su-name" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
+                <input id="su-name" type="text" placeholder="Aarav Sharma" class="forge-input w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none" />
+                <p id="su-name-err" class="hidden mt-1 text-xs text-rose-500"></p>
+              </div>
+
+              <div>
+                <label for="su-email" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Work Email</label>
+                <div class="relative">
+                  <input id="su-email" type="email" oninput="validateLiveEmail('su-email', 'su-email-ok')" placeholder="aarav@novacart.io" class="forge-input w-full pl-3.5 pr-9 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none" />
+                  <span id="su-email-ok" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500">
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                  </span>
+                </div>
+                <p id="su-email-err" class="hidden mt-1 text-xs text-rose-500"></p>
+              </div>
+
+              <div>
+                <label for="su-password" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Password</label>
+                <div class="relative">
+                  <input id="su-password" type="password" oninput="evaluatePasswordStrength(this.value)" placeholder="Create a strong password" class="forge-input w-full pl-3.5 pr-10 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none" />
+                  <button type="button" onclick="togglePassword('su-password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                  </button>
+                </div>
+
+                <!-- Live Strength Meter: Weak / Fair / Strong / Forged -->
+                <div class="mt-2">
+                  <div class="grid grid-cols-4 gap-1.5 h-1.5">
+                    <div id="str-1" class="rounded-full bg-slate-200 dark:bg-slate-800 transition-colors"></div>
+                    <div id="str-2" class="rounded-full bg-slate-200 dark:bg-slate-800 transition-colors"></div>
+                    <div id="str-3" class="rounded-full bg-slate-200 dark:bg-slate-800 transition-colors"></div>
+                    <div id="str-4" class="rounded-full bg-slate-200 dark:bg-slate-800 transition-colors"></div>
+                  </div>
+                  <div class="flex items-center justify-between mt-1">
+                    <span id="str-text" class="text-[11px] font-medium text-slate-400">Min 8 chars, uppercase, number &amp; symbol</span>
+                  </div>
+                </div>
+                <p id="su-password-err" class="hidden mt-1 text-xs text-rose-500"></p>
+              </div>
+
+              <button type="button" onclick="nextSignupStep()" class="w-full py-2.5 px-4 rounded-xl bg-[#072146] hover:bg-[#0b3166] dark:bg-[#0d6efd] dark:hover:bg-[#0b5ed7] text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2">
+                <span>Continue</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <!-- STEP 2 -->
+            <div id="su-step-2" class="hidden space-y-3.5">
+              <div>
+                <label for="su-business" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Business Name</label>
+                <input id="su-business" type="text" placeholder="NovaCart Commerce" class="forge-input w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none" />
+                <p id="su-business-err" class="hidden mt-1 text-xs text-rose-500"></p>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="su-currency" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Settlement Currency</label>
+                  <select id="su-currency" class="forge-input w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none">
+                    <option value="USD">USD ($)</option>
+                    <option value="INR" selected>INR (₹)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="su-volume" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Monthly Volume</label>
+                  <select id="su-volume" class="forge-input w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none">
+                    <option value="<$10k">&lt; $10k / mo</option>
+                    <option value="$10k-$100k" selected>$10k – $100k</option>
+                    <option value="$100k-$1M">$100k – $1M</option>
+                    <option value="$1M+">$1M+ / mo</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="inline-flex items-start gap-2.5 cursor-pointer select-none">
+                  <input id="su-terms" type="checkbox" class="mt-0.5 w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-[#0d6efd] focus:ring-[#0d6efd]" />
+                  <span class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    I agree to the forgeXPay <span class="text-[#0d6efd] dark:text-[#25d0ff] font-medium">Merchant Services Agreement</span> and <span class="text-[#0d6efd] dark:text-[#25d0ff] font-medium">Privacy Policy</span>.
+                  </span>
+                </label>
+                <p id="su-terms-err" class="hidden mt-1 text-xs text-rose-500"></p>
+              </div>
+
+              <div class="flex items-center gap-2.5 pt-1">
+                <button type="button" onclick="prevSignupStep()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                  Back
+                </button>
+                <button id="signup-submit-btn" type="submit" class="flex-1 py-2.5 px-4 rounded-xl bg-[#072146] hover:bg-[#0b3166] dark:bg-[#0d6efd] dark:hover:bg-[#0b5ed7] text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2">
+                  <span>Create Account</span>
+                  <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- ==================== TAB C: INLINE FORGOT PASSWORD ==================== -->
+        <div id="auth-panel-forgot" class="hidden space-y-4">
+          <button type="button" onclick="switchAuthTab('signin')" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#0d6efd] dark:hover:text-[#25d0ff]">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Sign In
+          </button>
+
+          <form id="forgot-form" class="space-y-4" novalidate>
+            <div>
+              <h2 class="font-display text-lg font-bold text-[#072146] dark:text-white">Reset your password</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Enter your work email and we will send a secure recovery link.</p>
+            </div>
+            <div>
+              <label for="forgot-email" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Work Email</label>
+              <input id="forgot-email" type="email" placeholder="founder@company.com" class="forge-input w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none" />
+              <p id="forgot-email-err" class="hidden mt-1 text-xs text-rose-500"></p>
+            </div>
+            <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-[#072146] hover:bg-[#0b3166] dark:bg-[#0d6efd] dark:hover:bg-[#0b5ed7] text-white font-semibold text-sm transition-colors">
+              Send Reset Link
+            </button>
+          </form>
+
+          <div id="forgot-sent-box" class="hidden p-4 rounded-xl bg-sky-50/80 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/30 text-center space-y-2.5">
+            <div class="w-10 h-10 rounded-xl bg-[#0d6efd]/15 text-[#0d6efd] dark:text-[#25d0ff] mx-auto flex items-center justify-center">
+              <i data-lucide="mail-check" class="w-5 h-5"></i>
+            </div>
+            <p class="text-sm font-bold text-[#072146] dark:text-white">Check your inbox</p>
+            <p class="text-xs text-slate-600 dark:text-slate-300">
+              Reset link sent to <span id="forgot-target-email" class="font-mono font-semibold"></span>
+            </p>
+            <button id="forgot-resend-btn" type="button" disabled onclick="resendResetEmail()" class="w-full py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#071630] text-xs font-semibold text-slate-600 dark:text-slate-300 disabled:opacity-60">
+              Resend in 30s
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Minimal Trust Footer -->
+      <p class="mt-6 text-center text-xs text-slate-500 dark:text-slate-400 font-medium">
+        PCI-DSS Level 1 • 256-bit Encryption • 99.99% Uptime
+      </p>
+    </div>
+  </main>
+
+  <!-- ================================================================== -->
+  <!-- MODAL: CLEAN 6-DIGIT 2FA OTP VERIFICATION                          -->
+  <!-- ================================================================== -->
+  <div id="otp-modal" class="hidden fixed inset-0 z-[90] flex items-center justify-center p-4">
+    <div onclick="closeOtpModal()" class="fixed inset-0 bg-slate-950/55 backdrop-blur-xs"></div>
+    <div id="otp-card" class="relative z-10 w-full max-w-sm rounded-2xl bg-white dark:bg-[#071630] border border-slate-200 dark:border-slate-800 shadow-xl p-6">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-500/15 text-[#0d6efd] dark:text-[#25d0ff] flex items-center justify-center">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+        </div>
+        <button onclick="closeOtpModal()" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <h3 class="font-display font-bold text-base text-[#072146] dark:text-white">Two-Factor Verification</h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        Enter the 6-digit authenticator code. Demo code: <span class="font-mono font-bold text-[#0d6efd] dark:text-[#25d0ff]">482910</span>
+      </p>
+
+      <div class="grid grid-cols-6 gap-2 my-5">
+        <input type="text" inputmode="numeric" maxlength="1" class="otp-input h-11 text-center font-mono text-base font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-[#072146] dark:text-white focus:outline-none focus:border-[#0d6efd] focus:ring-2 focus:ring-sky-500/20" />
+        <input type="text" inputmode="numeric" maxlength="1" class="otp-input h-11 text-center font-mono text-base font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-[#072146] dark:text-white focus:outline-none focus:border-[#0d6efd] focus:ring-2 focus:ring-sky-500/20" />
+        <input type="text" inputmode="numeric" maxlength="1" class="otp-input h-11 text-center font-mono text-base font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-[#072146] dark:text-white focus:outline-none focus:border-[#0d6efd] focus:ring-2 focus:ring-sky-500/20" />
+        <input type="text" inputmode="numeric" maxlength="1" class="otp-input h-11 text-center font-mono text-base font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-[#072146] dark:text-white focus:outline-none focus:border-[#0d6efd] focus:ring-2 focus:ring-sky-500/20" />
+        <input type="text" inputmode="numeric" maxlength="1" class="otp-input h-11 text-center font-mono text-base font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-[#072146] dark:text-white focus:outline-none focus:border-[#0d6efd] focus:ring-2 focus:ring-sky-500/20" />
+        <input type="text" inputmode="numeric" maxlength="1" class="otp-input h-11 text-center font-mono text-base font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-[#072146] dark:text-white focus:outline-none focus:border-[#0d6efd] focus:ring-2 focus:ring-sky-500/20" />
+      </div>
+      <p id="otp-error" class="hidden text-xs text-rose-500 text-center mb-3 font-medium">Incorrect code. Use 482910 for demo.</p>
+
+      <div class="flex items-center justify-between gap-2">
+        <button type="button" onclick="autofillOtp()" class="text-xs font-semibold text-[#0d6efd] dark:text-[#25d0ff] hover:underline">Fill 482910</button>
+        <button type="button" onclick="submitOtp()" class="px-5 py-2 rounded-xl bg-[#072146] hover:bg-[#0b3166] dark:bg-[#0d6efd] dark:hover:bg-[#0b5ed7] text-white text-xs font-semibold transition-colors">Verify</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- VIEW 2: INTEGRATED FORGEXPAY MERCHANT DASHBOARD                    -->
+  <!-- ================================================================== -->
+  <div id="dashboard-view" class="hidden min-h-screen flex bg-[#f8fafc] dark:bg-[#040e21] fade-view">
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebar-overlay" onclick="toggleMobileSidebar(false)" class="hidden fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-xs lg:hidden"></div>
+
+    <!-- CLEAN PERSISTENT SIDEBAR -->
+    <aside id="dash-sidebar" class="fixed lg:sticky top-0 left-0 z-50 h-screen w-64 bg-white dark:bg-[#071630] border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-transform duration-200 -translate-x-full lg:translate-x-0 shrink-0">
+      <div>
+        <!-- Brand Header -->
+        <div class="h-16 px-5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
+          <div id="sidebar-brand-logo"></div>
+          <button onclick="toggleMobileSidebar(false)" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="p-3 space-y-1">
+          <button onclick="switchDashTab('overview')" data-nav="overview" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>Overview</span>
+          </button>
+          <button onclick="switchDashTab('transactions')" data-nav="transactions" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors">
+            <i data-lucide="arrow-left-right" class="w-4 h-4"></i>
+            <span>Transactions</span>
+            <span id="nav-tx-badge" class="ml-auto text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">0</span>
+          </button>
+          <button onclick="switchDashTab('payouts')" data-nav="payouts" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors">
+            <i data-lucide="landmark" class="w-4 h-4"></i>
+            <span>Payouts</span>
+          </button>
+          <button onclick="switchDashTab('links')" data-nav="links" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors">
+            <i data-lucide="link-2" class="w-4 h-4"></i>
+            <span>Payment Links</span>
+          </button>
+          <button onclick="switchDashTab('developers')" data-nav="developers" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors">
+            <i data-lucide="code-2" class="w-4 h-4"></i>
+            <span>Developers &amp; API</span>
+          </button>
+          <button onclick="switchDashTab('settings')" data-nav="settings" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+            <span>Settings</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Sidebar Footer Status -->
+      <div class="p-4 border-t border-slate-100 dark:border-slate-800">
+        <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Gateway API: 99.99% Uptime</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT SHELL -->
+    <div class="flex-1 flex flex-col min-w-0">
+
+      <!-- Test Mode Notice Banner -->
+      <div id="test-mode-banner" class="hidden bg-amber-400 text-amber-950 px-4 py-1.5 text-xs font-semibold flex items-center justify-center gap-2">
+        <i data-lucide="flask-conical" class="w-3.5 h-3.5"></i>
+        <span>TEST MODE — Viewing simulated sandbox environment. No real funds are settled.</span>
+      </div>
+
+      <!-- TOP HEADER BAR -->
+      <header class="sticky top-0 z-30 h-16 bg-white/90 dark:bg-[#071630]/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <button onclick="toggleMobileSidebar(true)" class="lg:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+          <h1 id="dash-page-title" class="font-display font-bold text-lg text-[#072146] dark:text-white truncate">Overview</h1>
+        </div>
+
+        <!-- Global Search Bar -->
+        <div class="hidden md:flex items-center relative flex-1 max-w-sm mx-4">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5"></i>
+          <input id="global-search" type="text" oninput="handleGlobalSearch(this.value)" placeholder="Search payment ID, customer, email..." class="forge-input w-full pl-10 pr-4 py-2 text-xs sm:text-sm rounded-xl bg-slate-100/80 dark:bg-[#0a1b38] border border-transparent text-slate-900 dark:text-white placeholder:text-slate-400 focus:bg-white dark:focus:bg-[#0a1b38] focus:outline-none transition-colors" />
+        </div>
+
+        <!-- Header Right Controls -->
+        <div class="flex items-center gap-2 sm:gap-2.5">
+          <!-- Live Mode / Test Mode Switch -->
+          <button onclick="toggleEnvMode()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
+            <span id="env-dot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span id="env-label" class="text-xs font-semibold text-slate-700 dark:text-slate-200 hidden sm:inline">Live Mode</span>
+            <div id="env-track" class="w-7 h-4 rounded-full bg-emerald-500/20 p-0.5 flex items-center">
+              <div id="env-knob" class="w-3 h-3 rounded-full bg-emerald-500 translate-x-3 transition-transform"></div>
+            </div>
+          </button>
+
+          <!-- + Simulate Payment -->
+          <button onclick="simulatePayment()" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl bg-[#072146] hover:bg-[#0b3166] dark:bg-[#0d6efd] dark:hover:bg-[#0b5ed7] text-white text-xs font-semibold transition-colors">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Simulate Payment</span>
+            <span class="sm:hidden">Simulate</span>
+          </button>
+
+          <!-- Theme Toggle -->
+          <button onclick="toggleTheme()" title="Toggle theme" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <i data-lucide="moon" class="w-4 h-4 dark:hidden"></i>
+            <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+          </button>
+
+          <!-- User Profile Dropdown Menu -->
+          <div class="relative">
+            <button id="profile-menu-btn" onclick="toggleProfileMenu()" class="flex items-center gap-2 p-1 pr-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+              <div id="header-avatar" class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#072146] via-[#0d6efd] to-[#00b8ff] text-white font-display font-bold text-[11px] flex items-center justify-center">FX</div>
+              <span id="header-biz-name" class="hidden sm:inline text-xs font-semibold text-[#072146] dark:text-white max-w-[110px] truncate">NovaCart</span>
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
+            </button>
+
+            <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-56 rounded-2xl bg-white dark:bg-[#071630] border border-slate-200 dark:border-slate-800 shadow-lg py-2 z-50">
+              <div class="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
+                <p id="dropdown-biz" class="text-xs font-bold text-[#072146] dark:text-white truncate">NovaCart Commerce</p>
+                <p id="dropdown-email" class="text-[11px] text-slate-500 dark:text-slate-400 truncate">founder@novacart.io</p>
+              </div>
+              <button onclick="switchDashTab('settings'); toggleProfileMenu(false)" class="w-full px-4 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
+                <i data-lucide="settings" class="w-3.5 h-3.5"></i> Merchant Settings
+              </button>
+              <button onclick="switchDashTab('developers'); toggleProfileMenu(false)" class="w-full px-4 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
+                <i data-lucide="key-round" class="w-3.5 h-3.5"></i> API Keys
+              </button>
+              <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+              <button onclick="handleSignOut()" class="w-full px-4 py-2 text-left text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2">
+                <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- MAIN WORKSPACE -->
+      <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1440px] w-full mx-auto space-y-6">
+
+        <!-- ==================== TAB 1: OVERVIEW ==================== -->
+        <section id="tab-overview" class="dash-tab space-y-6 fade-view">
+          <!-- 4 KPI Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div class="rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Gross Volume</span>
+                <div class="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-500/15 text-[#0d6efd] dark:text-[#25d0ff] flex items-center justify-center">
+                  <i data-lucide="trending-up" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <div id="kpi-gross" class="font-display text-2xl font-bold text-[#072146] dark:text-white">--</div>
+              <p class="mt-2 text-xs text-emerald-600 dark:text-emerald-400 font-semibold">+14.6% <span class="text-slate-400 font-normal">vs last period</span></p>
+            </div>
+
+            <div class="rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Net Revenue</span>
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <i data-lucide="wallet" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <div id="kpi-net" class="font-display text-2xl font-bold text-[#072146] dark:text-white">--</div>
+              <p class="mt-2 text-xs text-slate-400">After 2.2% gateway fees &amp; refunds</p>
+            </div>
+
+            <div class="rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Auth Success Rate</span>
+                <div class="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-500/15 text-[#00b8ff] flex items-center justify-center">
+                  <i data-lucide="shield-check" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <div id="kpi-rate" class="font-display text-2xl font-bold text-[#072146] dark:text-white">99.2%</div>
+              <p class="mt-2 text-xs text-emerald-600 dark:text-emerald-400 font-semibold">+0.35% <span class="text-slate-400 font-normal">Smart retry active</span></p>
+            </div>
+
+            <div class="rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Pending Payouts</span>
+                <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-[#072146] dark:text-sky-300 flex items-center justify-center">
+                  <i data-lucide="landmark" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <div id="kpi-pending" class="font-display text-2xl font-bold text-[#072146] dark:text-white">--</div>
+              <div class="mt-2 flex items-center justify-between text-xs">
+                <span class="text-slate-400">T+1 settlement</span>
+                <button onclick="switchDashTab('payouts')" class="font-semibold text-[#0d6efd] dark:text-[#25d0ff] hover:underline">Manage →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Row: Area Chart + Payment Method Doughnut -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <div class="lg:col-span-8 rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs flex flex-col">
+              <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div>
+                  <h2 class="font-display font-bold text-base text-[#072146] dark:text-white">Revenue &amp; Volume</h2>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Gross processed volume vs net settled revenue</p>
+                </div>
+                <div class="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-[#0a1b38] border border-slate-200/70 dark:border-slate-800">
+                  <button onclick="setChartRange('7D')" data-range="7D" class="range-btn px-3 py-1 rounded-lg text-xs font-semibold transition-colors">7D</button>
+                  <button onclick="setChartRange('30D')" data-range="30D" class="range-btn px-3 py-1 rounded-lg text-xs font-semibold transition-colors">30D</button>
+                  <button onclick="setChartRange('90D')" data-range="90D" class="range-btn px-3 py-1 rounded-lg text-xs font-semibold transition-colors">90D</button>
+                </div>
+              </div>
+              <div class="relative h-72 w-full">
+                <canvas id="revenue-chart"></canvas>
+              </div>
+            </div>
+
+            <div class="lg:col-span-4 rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between">
+              <div>
+                <h2 class="font-display font-bold text-base text-[#072146] dark:text-white">Payment Methods</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Volume share by settlement rail</p>
+              </div>
+              <div class="relative h-44 my-3">
+                <canvas id="methods-chart"></canvas>
+              </div>
+              <div id="methods-legend" class="space-y-2"></div>
+            </div>
+          </div>
+
+          <!-- Recent Transactions Table -->
+          <div class="rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 shadow-xs overflow-hidden">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="font-display font-bold text-base text-[#072146] dark:text-white">Recent Transactions</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Click any row to inspect fee breakdown or issue a refund.</p>
+              </div>
+              <button onclick="switchDashTab('transactions')" class="text-xs font-semibold text-[#0d6efd] dark:text-[#25d0ff] hover:underline inline-flex items-center gap-1">
+                View all <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-100 dark:border-slate-800 text-[11px] font-semibold uppercase tracking-wider text-slate-400 bg-slate-50/70 dark:bg-[#0a1b38]/60">
+                    <th class="py-3 px-5">Payment ID</th>
+                    <th class="py-3 px-4">Customer</th>
+                    <th class="py-3 px-4">Method</th>
+                    <th class="py-3 px-4 text-right">Amount</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-5 text-right">Date</th>
+                  </tr>
+                </thead>
+                <tbody id="overview-tx-tbody" class="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB 2: TRANSACTIONS ==================== -->
+        <section id="tab-transactions" class="dash-tab hidden space-y-5 fade-view">
+          <div class="rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2.5 flex-1">
+              <div class="relative flex-1 min-w-[210px]">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                <input id="tx-search" type="text" oninput="renderFullTransactions()" placeholder="Filter by ID, customer, email, method..." class="forge-input w-full pl-10 pr-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none" />
+              </div>
+
+              <div class="inline-flex flex-wrap p-1 rounded-xl bg-slate-100 dark:bg-[#0a1b38] border border-slate-200/70 dark:border-slate-800">
+                <button onclick="setTxFilter('All')" data-st="All" class="tx-filter-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors">All</button>
+                <button onclick="setTxFilter('Succeeded')" data-st="Succeeded" class="tx-filter-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors">Succeeded</button>
+                <button onclick="setTxFilter('Pending')" data-st="Pending" class="tx-filter-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors">Pending</button>
+                <button onclick="setTxFilter('Refunded')" data-st="Refunded" class="tx-filter-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors">Refunded</button>
+                <button onclick="setTxFilter('Failed')" data-st="Failed" class="tx-filter-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors">Failed</button>
+              </div>
+            </div>
+
+            <button onclick="exportTransactionsCSV()" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0a1b38] hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors">
+              <i data-lucide="download" class="w-4 h-4"></i> Export CSV
+            </button>
+          </div>
+
+          <div class="rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 shadow-xs overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-100 dark:border-slate-800 text-[11px] font-semibold uppercase tracking-wider text-slate-400 bg-slate-50/70 dark:bg-[#0a1b38]/60">
+                    <th class="py-3 px-5">Payment ID</th>
+                    <th class="py-3 px-4">Customer</th>
+                    <th class="py-3 px-4">Method</th>
+                    <th class="py-3 px-4 text-right">Amount</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-5 text-right">Date</th>
+                  </tr>
+                </thead>
+                <tbody id="full-tx-tbody" class="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm"></tbody>
+              </table>
+            </div>
+            <div id="tx-empty-state" class="hidden py-12 text-center text-sm text-slate-400">
+              No transactions match your current filter.
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB 3: PAYOUTS ==================== -->
+        <section id="tab-payouts" class="dash-tab hidden space-y-6 fade-view">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="rounded-2xl bg-[#072146] text-white p-5 shadow-xs flex flex-col justify-between">
+              <div>
+                <span class="text-xs font-medium text-sky-200">Available for Instant Payout</span>
+                <div id="payout-avail-val" class="font-display text-3xl font-bold mt-2">--</div>
+              </div>
+              <button onclick="openPayoutModal()" class="mt-5 w-full py-2.5 px-4 rounded-xl bg-[#00b8ff] hover:bg-[#25d0ff] text-[#072146] font-bold text-xs transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i> Request Instant Payout
+              </button>
+            </div>
+
+            <div class="rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between">
+              <div>
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Pending Clearing Balance</span>
+                <div id="payout-pending-val" class="font-display text-3xl font-bold text-[#072146] dark:text-white mt-2">--</div>
+              </div>
+              <p class="text-xs text-slate-400 mt-4">Settles automatically to your linked account on a T+1 rolling cycle.</p>
+            </div>
+
+            <div class="rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Linked Settlement Bank</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">Verified</span>
+                </div>
+                <div class="mt-3 flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[#072146] dark:text-sky-300">
+                    <i data-lucide="building-2" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <p class="text-sm font-bold text-[#072146] dark:text-white">HDFC Corporate Treasury</p>
+                    <p class="text-xs font-mono text-slate-500 dark:text-slate-400">IFSC •••• 0041 • Acct •••• 8824</p>
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-4">IMPS / FedNow Instant Rails Active</p>
+            </div>
+          </div>
+
+          <!-- Payout History Table -->
+          <div class="rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 shadow-xs overflow-hidden">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-800">
+              <h2 class="font-display font-bold text-base text-[#072146] dark:text-white">Payout History</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Recent bank disbursements and instant transfers</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-100 dark:border-slate-800 text-[11px] font-semibold uppercase tracking-wider text-slate-400 bg-slate-50/70 dark:bg-[#0a1b38]/60">
+                    <th class="py-3 px-5">Payout ID</th>
+                    <th class="py-3 px-4">Destination</th>
+                    <th class="py-3 px-4">Transfer Rail</th>
+                    <th class="py-3 px-4 text-right">Amount</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-5 text-right">Initiated</th>
+                  </tr>
+                </thead>
+                <tbody id="payouts-tbody" class="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB 4: PAYMENT LINKS ==================== -->
+        <section id="tab-links" class="dash-tab hidden space-y-5 fade-view">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="font-display font-bold text-base text-[#072146] dark:text-white">Hosted Payment Links</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Create zero-code checkout links and preview the customer checkout experience.</p>
+            </div>
+            <button onclick="openCreateLinkModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#072146] hover:bg-[#0b3166] dark:bg-[#0d6efd] dark:hover:bg-[#0b5ed7] text-white text-xs font-semibold transition-colors">
+              <i data-lucide="plus" class="w-4 h-4"></i> Create Payment Link
+            </button>
+          </div>
+
+          <div id="links-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+        </section>
+
+        <!-- ==================== TAB 5: DEVELOPERS & API ==================== -->
+        <section id="tab-developers" class="dash-tab hidden space-y-6 fade-view">
+          <!-- API Keys Card -->
+          <div class="rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="font-display font-bold text-base text-[#072146] dark:text-white">API Keys</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Authenticate your backend server and client SDK integrations.</p>
+              </div>
+              <span id="dev-env-pill" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">Live Mode</span>
+            </div>
+
+            <!-- Publishable Key -->
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#0a1b38] border border-slate-200/70 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="min-w-0">
+                <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Publishable Key</span>
+                <p id="dev-pk" class="font-mono text-xs sm:text-sm text-[#072146] dark:text-sky-200 mt-1 break-all"></p>
+              </div>
+              <button onclick="copyApiKey('pk')" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-[#071630] border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
+              </button>
+            </div>
+
+            <!-- Secret Key -->
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#0a1b38] border border-slate-200/70 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="min-w-0">
+                <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Secret Key</span>
+                <p id="dev-sk" class="font-mono text-xs sm:text-sm text-[#072146] dark:text-sky-200 mt-1 break-all"></p>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <button id="btn-reveal-sk" onclick="toggleSecretKey()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-[#071630] border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                  <i data-lucide="eye" class="w-3.5 h-3.5"></i> Reveal
+                </button>
+                <button onclick="copyApiKey('sk')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-[#071630] border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
+                </button>
+                <button onclick="openRollKeyModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-500/15 border border-rose-200 dark:border-rose-500/30 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/25">
+                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Roll Key
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Webhook Event Tester -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <div class="lg:col-span-5 rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-4">
+              <div>
+                <h2 class="font-display font-bold text-base text-[#072146] dark:text-white">Webhook Event Tester</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Send a signed test event and inspect delivery latency.</p>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Endpoint URL</label>
+                <input id="wh-endpoint" type="url" value="https://api.novacart.io/webhooks/forgexpay" class="forge-input w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-slate-800 dark:text-slate-200 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Event Type</label>
+                <select id="wh-event-type" onchange="previewWebhookJson(this.value)" class="forge-input w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-slate-800 dark:text-slate-200 focus:outline-none">
+                  <option value="payment.succeeded">payment.succeeded</option>
+                  <option value="payment.failed">payment.failed</option>
+                  <option value="charge.refunded">charge.refunded</option>
+                  <option value="payout.paid">payout.paid</option>
+                </select>
+              </div>
+              <button onclick="sendTestWebhook()" class="w-full py-2.5 px-4 rounded-xl bg-[#072146] hover:bg-[#0b3166] dark:bg-[#0d6efd] dark:hover:bg-[#0b5ed7] text-white text-xs font-semibold transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i> Send Test Event
+              </button>
+
+              <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Simulated Response Log</span>
+                <div id="wh-log-list" class="mt-2 space-y-2 max-h-48 overflow-y-auto"></div>
+              </div>
+            </div>
+
+            <div class="lg:col-span-7 rounded-2xl bg-[#040e21] border border-slate-800 p-5 shadow-xs flex flex-col">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-mono font-semibold text-slate-300">JSON Payload Preview</span>
+                <span id="wh-status-badge" class="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300">200 OK • Ready</span>
+              </div>
+              <pre id="wh-json-box" class="flex-1 text-xs font-mono text-sky-200 bg-[#071630] rounded-xl p-4 overflow-x-auto leading-relaxed border border-slate-800"></pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB 6: SETTINGS ==================== -->
+        <section id="tab-settings" class="dash-tab hidden space-y-6 fade-view">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Merchant Profile Form -->
+            <form id="settings-form" class="lg:col-span-7 rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
+              <div>
+                <h2 class="font-display font-bold text-base text-[#072146] dark:text-white">Merchant Profile</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Shown on customer receipts, checkout pages, and billing descriptors.</p>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Business Name</label>
+                  <input id="set-biz" type="text" class="forge-input w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Statement Descriptor</label>
+                  <input id="set-descriptor" type="text" class="forge-input w-full px-3.5 py-2 text-sm font-mono uppercase rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Support Email</label>
+                  <input id="set-email" type="email" class="forge-input w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Primary Settlement Currency</label>
+                  <select id="set-currency" class="forge-input w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none">
+                    <option value="USD">USD — US Dollar ($)</option>
+                    <option value="INR">INR — Indian Rupee (₹)</option>
+                    <option value="EUR">EUR — Euro (€)</option>
+                    <option value="GBP">GBP — British Pound (£)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="pt-2 flex justify-end">
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#072146] hover:bg-[#0b3166] dark:bg-[#0d6efd] dark:hover:bg-[#0b5ed7] text-white text-xs font-semibold transition-colors">
+                  Save Merchant Profile
+                </button>
+              </div>
+            </form>
+
+            <!-- Webhook & Settlement Preferences -->
+            <form id="prefs-form" class="lg:col-span-5 rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
+              <div>
+                <h2 class="font-display font-bold text-base text-[#072146] dark:text-white">Webhook &amp; Alert Preferences</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Configure retry behavior and operational notifications.</p>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Default Webhook URL</label>
+                <input id="set-wh-url" type="url" class="forge-input w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none" />
+              </div>
+
+              <div class="space-y-3 pt-1">
+                <label class="flex items-center justify-between cursor-pointer">
+                  <div>
+                    <p class="text-xs font-semibold text-slate-800 dark:text-slate-200">Automatic webhook retries</p>
+                    <p class="text-[11px] text-slate-400">Exponential backoff up to 24 hours</p>
+                  </div>
+                  <input id="pref-retry" type="checkbox" checked class="w-4 h-4 rounded text-[#0d6efd] focus:ring-[#0d6efd]" />
+                </label>
+
+                <label class="flex items-center justify-between cursor-pointer">
+                  <div>
+                    <p class="text-xs font-semibold text-slate-800 dark:text-slate-200">Failed payment alerts</p>
+                    <p class="text-[11px] text-slate-400">Email notifications on declined charges</p>
+                  </div>
+                  <input id="pref-failed" type="checkbox" checked class="w-4 h-4 rounded text-[#0d6efd] focus:ring-[#0d6efd]" />
+                </label>
+
+                <label class="flex items-center justify-between cursor-pointer">
+                  <div>
+                    <p class="text-xs font-semibold text-slate-800 dark:text-slate-200">Daily payout summary</p>
+                    <p class="text-[11px] text-slate-400">Reconciliation report at 08:00 UTC</p>
+                  </div>
+                  <input id="pref-digest" type="checkbox" checked class="w-4 h-4 rounded text-[#0d6efd] focus:ring-[#0d6efd]" />
+                </label>
+              </div>
+
+              <div class="pt-2 flex justify-end">
+                <button type="submit" class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-[#072146] dark:text-white transition-colors">
+                  Save Preferences
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- SLIDE-OVER TRANSACTION DETAILS DRAWER                              -->
+  <!-- ================================================================== -->
+  <div id="tx-drawer" class="hidden fixed inset-0 z-[80] flex justify-end">
+    <div onclick="closeTxDrawer()" class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs"></div>
+    <div class="relative z-10 w-full max-w-md bg-white dark:bg-[#071630] h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col">
+      <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div>
+          <span class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Transaction Details</span>
+          <h3 id="drawer-tx-id" class="font-mono font-bold text-sm text-[#072146] dark:text-white mt-0.5">fxp_...</h3>
+        </div>
+        <button onclick="closeTxDrawer()" class="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div id="drawer-body" class="flex-1 overflow-y-auto p-5 space-y-5"></div>
+      <div id="drawer-footer" class="p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-[#051026]"></div>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- MODAL: REQUEST INSTANT PAYOUT                                      -->
+  <!-- ================================================================== -->
+  <div id="payout-modal" class="hidden fixed inset-0 z-[85] flex items-center justify-center p-4">
+    <div onclick="closePayoutModal()" class="fixed inset-0 bg-slate-950/55 backdrop-blur-xs"></div>
+    <div class="relative z-10 w-full max-w-md rounded-2xl bg-white dark:bg-[#071630] border border-slate-200 dark:border-slate-800 shadow-xl p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-display font-bold text-base text-[#072146] dark:text-white">Request Instant Payout</h3>
+        <button onclick="closePayoutModal()" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+
+      <form id="payout-form" class="space-y-4">
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-[#0a1b38] border border-slate-200/70 dark:border-slate-800 flex items-center justify-between text-xs">
+          <span class="text-slate-500 dark:text-slate-400">Available Balance</span>
+          <span id="payout-modal-avail" class="font-mono font-bold text-[#072146] dark:text-white">--</span>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs font-semibold text-slate-700 dark:text-slate-300">Amount (<span id="payout-cur-code">INR</span>)</label>
+            <button type="button" onclick="setMaxPayout()" class="text-xs font-semibold text-[#0d6efd] dark:text-[#25d0ff] hover:underline">Max</button>
+          </div>
+          <input id="payout-amount-input" type="number" step="0.01" min="1" required oninput="updatePayoutPreview()" class="forge-input w-full px-3.5 py-2.5 text-sm font-mono font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <label class="cursor-pointer">
+            <input type="radio" name="payout-rail" value="instant" checked onchange="updatePayoutPreview()" class="peer sr-only" />
+            <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 peer-checked:border-[#0d6efd] peer-checked:bg-sky-50/70 dark:peer-checked:bg-sky-500/10 transition-colors">
+              <div class="text-xs font-bold text-[#072146] dark:text-white">Instant Rail</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">~30 sec • 1% fee</div>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="payout-rail" value="standard" onchange="updatePayoutPreview()" class="peer sr-only" />
+            <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 peer-checked:border-[#0d6efd] peer-checked:bg-sky-50/70 dark:peer-checked:bg-sky-500/10 transition-colors">
+              <div class="text-xs font-bold text-[#072146] dark:text-white">Standard Bank</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">1-2 days • Free</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-[#0a1b38] text-xs space-y-1.5">
+          <div class="flex justify-between text-slate-500 dark:text-slate-400"><span>Transfer Fee</span><span id="payout-fee-txt" class="font-mono">--</span></div>
+          <div class="flex justify-between font-bold text-[#072146] dark:text-white pt-1.5 border-t border-slate-200 dark:border-slate-700"><span>Net to HDFC •••• 8824</span><span id="payout-net-txt" class="font-mono">--</span></div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-1">
+          <button type="button" onclick="closePayoutModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-[#072146] hover:bg-[#0b3166] dark:bg-[#0d6efd] dark:hover:bg-[#0b5ed7] text-white text-xs font-semibold transition-colors">Confirm Payout</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- MODAL: CREATE PAYMENT LINK                                         -->
+  <!-- ================================================================== -->
+  <div id="create-link-modal" class="hidden fixed inset-0 z-[85] flex items-center justify-center p-4">
+    <div onclick="closeCreateLinkModal()" class="fixed inset-0 bg-slate-950/55 backdrop-blur-xs"></div>
+    <div class="relative z-10 w-full max-w-md rounded-2xl bg-white dark:bg-[#071630] border border-slate-200 dark:border-slate-800 shadow-xl p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-display font-bold text-base text-[#072146] dark:text-white">Create Payment Link</h3>
+        <button onclick="closeCreateLinkModal()" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <form id="create-link-form" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Product / Invoice Title</label>
+          <input id="link-title-in" type="text" required placeholder="e.g., Annual API Plan" class="forge-input w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none" />
+        </div>
+        <div class="grid grid-cols-3 gap-2.5">
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Amount</label>
+            <input id="link-amt-in" type="number" step="0.01" min="1" required placeholder="499.00" class="forge-input w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Currency</label>
+            <select id="link-cur-in" class="forge-input w-full px-2.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none">
+              <option value="USD">USD</option>
+              <option value="INR">INR</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeCreateLinkModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-[#072146] hover:bg-[#0b3166] dark:bg-[#0d6efd] dark:hover:bg-[#0b5ed7] text-white text-xs font-semibold transition-colors">Create Link</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- MODAL: HOSTED CHECKOUT PREVIEW                                     -->
+  <!-- ================================================================== -->
+  <div id="checkout-modal" class="hidden fixed inset-0 z-[85] flex items-center justify-center p-4">
+    <div onclick="closeCheckoutModal()" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs"></div>
+    <div class="relative z-10 w-full max-w-md rounded-2xl bg-white dark:bg-[#071630] border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+      <div class="bg-[#072146] p-5 text-white flex items-center justify-between">
+        <div>
+          <div id="checkout-mini-brand" class="mb-1"></div>
+          <h4 id="co-title" class="font-display font-bold text-sm">Hosted Invoice</h4>
+        </div>
+        <div class="text-right">
+          <div id="co-amount" class="font-display font-bold text-xl">--</div>
+          <button onclick="closeCheckoutModal()" class="text-[11px] text-sky-300 hover:text-white underline">Close</button>
+        </div>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Customer Email</label>
+          <input id="co-email" type="email" value="customer@acme.com" class="forge-input w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0a1b38] text-slate-900 dark:text-white focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">Payment Method</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="cursor-pointer">
+              <input type="radio" name="co-method" value="Card" checked class="peer sr-only" />
+              <div class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 peer-checked:border-[#0d6efd] peer-checked:bg-sky-50/70 dark:peer-checked:bg-sky-500/10 text-xs font-semibold text-[#072146] dark:text-white flex items-center gap-2">
+                <i data-lucide="credit-card" class="w-4 h-4 text-[#0d6efd] dark:text-[#25d0ff]"></i> Card •••• 4242
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="co-method" value="UPI" class="peer sr-only" />
+              <div class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 peer-checked:border-[#0d6efd] peer-checked:bg-sky-50/70 dark:peer-checked:bg-sky-500/10 text-xs font-semibold text-[#072146] dark:text-white flex items-center gap-2">
+                <i data-lucide="smartphone" class="w-4 h-4 text-[#0d6efd] dark:text-[#25d0ff]"></i> UPI Instant
+              </div>
+            </label>
+          </div>
+        </div>
+        <button onclick="completeCheckoutPreview()" class="w-full py-2.5 rounded-xl bg-[#072146] hover:bg-[#0b3166] dark:bg-[#0d6efd] dark:hover:bg-[#0b5ed7] text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="lock" class="w-4 h-4"></i>
+          <span id="co-pay-btn">Pay Now</span>
+        </button>
+        <p class="text-[11px] text-center text-slate-400">Encrypted by forgeXPay • PCI-DSS Level 1</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- MODAL: ROLL SECRET API KEY CONFIRMATION                            -->
+  <!-- ================================================================== -->
+  <div id="roll-key-modal" class="hidden fixed inset-0 z-[85] flex items-center justify-center p-4">
+    <div onclick="closeRollKeyModal()" class="fixed inset-0 bg-slate-950/55 backdrop-blur-xs"></div>
+    <div class="relative z-10 w-full max-w-sm rounded-2xl bg-white dark:bg-[#071630] border border-slate-200 dark:border-slate-800 shadow-xl p-6">
+      <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-3">
+        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+      </div>
+      <h3 class="font-display font-bold text-base text-[#072146] dark:text-white">Roll Secret API Key?</h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+        The previous secret key will be revoked immediately. Update your server environment variables to prevent API disruption.
+      </p>
+      <div class="flex justify-end gap-2 mt-5">
+        <button onclick="closeRollKeyModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
+        <button onclick="confirmRollSecretKey()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold">Yes, Roll Key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- APPLICATION JAVASCRIPT ENGINE                                      -->
+  <!-- ================================================================== -->
+  <script>
+    /* ==================================================================
+       1. CRISP MULTI-FACETED FORGEXPAY SVG LOGO BUILDER (STATIC & SHARP)
+       ================================================================== */
+    function buildForgeEmblemSVG(sizeClass = 'w-9 h-9', uid = 'fx') {
+      return `
+        <svg class="${sizeClass} shrink-0" viewBox="0 0 120 112" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="${uid}-top" x1="25" y1="50" x2="114" y2="9" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#0d6efd"/>
+              <stop offset="55%" stop-color="#00b8ff"/>
+              <stop offset="100%" stop-color="#25d0ff"/>
+            </linearGradient>
+            <linearGradient id="${uid}-spine" x1="58" y1="38" x2="17" y2="106" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#25d0ff"/>
+              <stop offset="58%" stop-color="#0d6efd"/>
+              <stop offset="100%" stop-color="#072146"/>
+            </linearGradient>
+            <linearGradient id="${uid}-fold" x1="60" y1="62" x2="90" y2="78" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#0d6efd"/>
+              <stop offset="100%" stop-color="#00b8ff"/>
+            </linearGradient>
+          </defs>
+          <!-- Top Sweeping Diagonal Blade -->
+          <polygon points="29,44 114,9 75,36 25,52" fill="url(#${uid}-top)"/>
+          <polygon points="114,9 97,34 55,51 75,36" fill="#072146"/>
+          <!-- Left Wing Chevron -->
+          <polygon points="4,77 12,61 40,49 32,63 26,77" fill="#072146"/>
+          <polygon points="40,49 43,50 33,77 26,77" fill="#0d6efd"/>
+          <!-- Central Sweeping Spine -->
+          <polygon points="46,45 58,39 36,86 17,106" fill="url(#${uid}-spine)"/>
+          <polygon points="58,39 68,44 43,83 17,106" fill="#061a38"/>
+          <!-- Middle Crossbar Folded Shard -->
+          <polygon points="54,57 88,43 81,58 50,71" fill="#072146"/>
+          <polygon points="60,67 78,59 90,77 65,77" fill="url(#${uid}-fold)"/>
+          <polygon points="78,59 90,77 74,72" fill="#25d0ff"/>
+        </svg>
+      `;
+    }
+
+    function buildBrandLockup(uid, size = 'md', forceLightText = false) {
+      const emCls = size === 'lg' ? 'w-11 h-11' : size === 'sm' ? 'w-6 h-6' : 'w-8 h-8';
+      const txtCls = size === 'lg' ? 'text-3xl' : size === 'sm' ? 'text-base' : 'text-xl';
+      const darkSafeText = forceLightText ? 'text-white' : 'text-[#072146] dark:text-white';
+      const paySafeText = forceLightText ? 'text-slate-200' : 'text-[#072146] dark:text-slate-100';
+      return `
+        <div class="inline-flex items-center gap-2 select-none">
+          ${buildForgeEmblemSVG(emCls, uid)}
+          <div class="${txtCls} leading-none flex items-baseline">
+            <span class="fxp-wordmark-forge ${darkSafeText}">forge</span>
+            <span class="fxp-wordmark-x text-[1.06em]">X</span>
+            <span class="fxp-wordmark-pay ${paySafeText} ml-0.5">Pay</span>
+          </div>
+        </div>
+      `;
+    }
+
+    /* ==================================================================
+       2. APPLICATION STATE & MOCK DATA
+       ================================================================== */
+    const CURRENCIES = {
+      USD: { symbol: '$', rate: 1.0, locale: 'en-US' },
+      INR: { symbol: '₹', rate: 84.0, locale: 'en-IN' },
+      EUR: { symbol: '€', rate: 0.92, locale: 'en-US' },
+      GBP: { symbol: '£', rate: 0.79, locale: 'en-US' },
+    };
+
+    const state = {
+      authenticated: false,
+      activeTab: 'overview',
+      env: 'live', // 'live' | 'test'
+      chartRange: '30D',
+      txStatusFilter: 'All',
+      secretRevealed: false,
+      selectedTxId: null,
+      confirmingRefund: false,
+      previewLinkId: null,
+      pendingAuthProfile: null,
+      merchant: {
+        name: 'Aarav Sharma',
+        business: 'NovaCart Commerce',
+        email: 'founder@novacart.io',
+        descriptor: 'FORGEXPAY*NOVACART',
+        currency: 'INR',
+        webhookUrl: 'https://api.novacart.io/webhooks/forgexpay',
+      },
+      balancesUsd: {
+        live: { available: 18420.50, pending: 4120.00 },
+        test: { available: 4500.00, pending: 950.00 },
+      },
+      apiKeys: {
+        live: {
+          pk: 'fxp_live_pk_8c91a4f20b6e7d31a5c8f029e4b1d7a2',
+          sk: 'fxp_live_sk_2f74d8e01a9c5b63e048a1f9c2d6b3e8xL',
+        },
+        test: {
+          pk: 'fxp_test_pk_sandbox_3a19c7e4b208f5d61a9c4b2e',
+          sk: 'fxp_test_sk_sandbox_7b40e2a9d163c8f52e10a9mK',
+        },
+      },
+      transactions: {
+        live: [
+          { id: 'fxp_9a41c28e', customer: 'Ananya Iyer', email: 'ananya@zenithcloud.in', methodType: 'UPI', method: 'UPI • ananya@okaxis', amountUsd: 310.00, status: 'Succeeded', date: 'Nov 20, 2026, 19:22', ip: '49.36.211.18', orderId: 'ORD-9041' },
+          { id: 'fxp_8b30d17f', customer: 'Daniel Ross', email: 'd.ross@meridianhq.com', methodType: 'Card', method: 'Visa •••• 4242', amountUsd: 1280.00, status: 'Succeeded', date: 'Nov 20, 2026, 18:45', ip: '104.28.44.19', orderId: 'ORD-9039' },
+          { id: 'fxp_7c29e06a', customer: 'Clara Moreau', email: 'clara@atelier-paris.fr', methodType: 'Wallet', method: 'Apple Pay', amountUsd: 540.50, status: 'Succeeded', date: 'Nov 20, 2026, 17:58', ip: '185.24.112.9', orderId: 'ORD-9034' },
+          { id: 'fxp_6d18f95b', customer: 'Rohan Mehta', email: 'rohan@kinetix.io', methodType: 'Bank', method: 'IMPS •••• 4012', amountUsd: 960.00, status: 'Pending', date: 'Nov 20, 2026, 16:31', ip: '103.21.44.8', orderId: 'ORD-9028' },
+          { id: 'fxp_5e07a84c', customer: 'Emily Watson', email: 'emily@brightpath.co.uk', methodType: 'Card', method: 'Mastercard •••• 8819', amountUsd: 745.00, status: 'Succeeded', date: 'Nov 20, 2026, 15:10', ip: '81.149.22.104', orderId: 'ORD-9022' },
+          { id: 'fxp_4f96b73d', customer: 'Diego Morales', email: 'diego@solaris.mx', methodType: 'Card', method: 'Visa •••• 3112', amountUsd: 220.00, status: 'Failed', date: 'Nov 19, 2026, 22:14', ip: '189.203.11.42', orderId: 'ORD-9015' },
+          { id: 'fxp_3a85c62e', customer: 'Vikram Singh', email: 'vikram@atlaslogistics.in', methodType: 'UPI', method: 'UPI • vikram@ybl', amountUsd: 410.00, status: 'Refunded', date: 'Nov 19, 2026, 19:02', ip: '49.36.210.4', orderId: 'ORD-9011' },
+          { id: 'fxp_2b74d51f', customer: 'Mei Lin', email: 'mei@pacificventures.sg', methodType: 'Card', method: 'Amex •••• 1004', amountUsd: 1650.00, status: 'Succeeded', date: 'Nov 19, 2026, 14:40', ip: '118.200.12.9', orderId: 'ORD-9004' },
+        ],
+        test: [
+          { id: 'fxp_test_019a', customer: 'Sandbox Card Buyer', email: 'qa1@forgexpay.io', methodType: 'Card', method: 'Visa •••• 4242', amountUsd: 199.00, status: 'Succeeded', date: 'Nov 20, 2026, 19:12', ip: '127.0.0.1', orderId: 'TEST-104' },
+          { id: 'fxp_test_018b', customer: 'Sandbox UPI Buyer', email: 'qa2@forgexpay.io', methodType: 'UPI', method: 'UPI • ok@sandbox', amountUsd: 95.00, status: 'Succeeded', date: 'Nov 20, 2026, 18:20', ip: '127.0.0.1', orderId: 'TEST-103' },
+          { id: 'fxp_test_017c', customer: 'Declined Test Card', email: 'decline@forgexpay.io', methodType: 'Card', method: 'Visa •••• 0002', amountUsd: 350.00, status: 'Failed', date: 'Nov 19, 2026, 15:40', ip: '127.0.0.1', orderId: 'TEST-102' },
+        ],
+      },
+      payouts: [
+        { id: 'po_fxp_8841', destination: 'HDFC Corporate •••• 8824', rail: 'Instant Rail', amountUsd: 6400.00, status: 'Paid', date: 'Nov 18, 2026, 10:15' },
+        { id: 'po_fxp_8792', destination: 'HDFC Corporate •••• 8824', rail: 'Standard Bank', amountUsd: 9250.00, status: 'Paid', date: 'Nov 14, 2026, 08:00' },
+        { id: 'po_fxp_8740', destination: 'HDFC Corporate •••• 8824', rail: 'Standard Bank', amountUsd: 7810.00, status: 'Paid', date: 'Nov 09, 2026, 08:00' },
+      ],
+      paymentLinks: [
+        { id: 'lnk_scale_pro', title: 'Enterprise Gateway License', amount: 24999, currency: 'INR', url: 'https://pay.forgexpay.io/lnk_scalePro', visits: 52, active: true },
+        { id: 'lnk_api_tier', title: 'Global API Starter Pack', amount: 299, currency: 'USD', url: 'https://pay.forgexpay.io/lnk_apiPack', visits: 31, active: true },
+        { id: 'lnk_eu_invoice', title: 'EU Merchant Onboarding', amount: 650, currency: 'EUR', url: 'https://pay.forgexpay.io/lnk_euOnb', visits: 14, active: true },
+      ],
+      webhookLogs: [
+        { id: 'evt_fxp_921a', event: 'payment.succeeded', status: 200, latency: '78ms', time: '19:22:05' },
+        { id: 'evt_fxp_814c', event: 'payout.paid', status: 200, latency: '92ms', time: '16:10:42' },
+      ],
+      chartBaseUsd: {
+        '7D': { labels: ['Nov 14', 'Nov 15', 'Nov 16', 'Nov 17', 'Nov 18', 'Nov 19', 'Nov 20'], gross: [14800, 17900, 16400, 21200, 19800, 24100, 27900] },
+        '30D': { labels: ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4', 'Wk 5', 'Wk 6'], gross: [61000, 72500, 69800, 84200, 93500, 108400] },
+        '90D': { labels: ['Sep 1', 'Sep 15', 'Oct 1', 'Oct 15', 'Nov 1', 'Nov 20'], gross: [142000, 168000, 194000, 221000, 254000, 289000] },
+      },
+    };
+
+    let revenueChart = null;
+    let methodsChart = null;
+    let resendTimer = null;
+
+    /* ==================================================================
+       3. HELPERS (CURRENCY FORMATTING, TOASTS, CLIPBOARD, THEME)
+       ================================================================== */
+    function formatFromUsd(usdVal, overrideCode = null) {
+      const code = overrideCode || state.merchant.currency || 'USD';
+      const meta = CURRENCIES[code] || CURRENCIES.USD;
+      const amt = usdVal * meta.rate;
+      return meta.symbol + amt.toLocaleString(meta.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatDirect(val, code) {
+      const meta = CURRENCIES[code] || CURRENCIES.USD;
+      return meta.symbol + Number(val).toLocaleString(meta.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const styles = {
+        success: 'bg-[#072146] dark:bg-white text-white dark:text-[#072146] border-emerald-500/30',
+        info: 'bg-[#072146] dark:bg-white text-white dark:text-[#072146] border-sky-500/30',
+        warning: 'bg-amber-400 text-amber-950 border-amber-300',
+        error: 'bg-rose-600 text-white border-rose-400',
+      };
+      const icons = { success: 'check-circle-2', info: 'info', warning: 'alert-triangle', error: 'alert-circle' };
+      const iconTint = type === 'success' ? 'text-emerald-400 dark:text-emerald-600' : type === 'info' ? 'text-[#25d0ff] dark:text-[#0d6efd]' : '';
+
+      const el = document.createElement('div');
+      el.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-lg text-xs sm:text-sm font-medium fade-view ${styles[type] || styles.info}`;
+      el.innerHTML = `<i data-lucide="${icons[type] || 'info'}" class="w-4 h-4 shrink-0 ${iconTint}"></i><span class="flex-1">${msg}</span>`;
+      container.appendChild(el);
+      lucide.createIcons({ nodes: [el] });
+
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 0.2s ease';
+        setTimeout(() => el.remove(), 220);
+      }, 3200);
+    }
+
+    // Safe iFrame-compatible clipboard copy
+    function copyToClipboard(text, message = 'Copied to clipboard!') {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast(message, 'success');
+      } catch (e) {
+        showToast('Clipboard copy failed in this browser.', 'error');
+      }
+    }
+
+    function toggleTheme() {
+      const dark = document.documentElement.classList.toggle('dark');
+      if (state.authenticated && state.activeTab === 'overview') {
+        renderCharts();
+      }
+      showToast(`Switched to ${dark ? 'Dark' : 'Light'} mode`, 'info');
+    }
+
+    /* ==================================================================
+       4. SIMPLE AUTHENTICATION FLOW (SIGN IN, 2-STEP SIGN UP, FORGOT, 2FA)
+       ================================================================== */
+    function switchAuthTab(tab) {
+      const tabsBar = document.getElementById('auth-tabs');
+      const btnIn = document.getElementById('tab-btn-signin');
+      const btnUp = document.getElementById('tab-btn-signup');
+
+      document.getElementById('auth-panel-signin').classList.add('hidden');
+      document.getElementById('auth-panel-signup').classList.add('hidden');
+      document.getElementById('auth-panel-forgot').classList.add('hidden');
+      clearErrors();
+
+      if (tab === 'forgot') {
+        tabsBar.classList.add('hidden');
+        document.getElementById('auth-panel-forgot').classList.remove('hidden');
+        document.getElementById('forgot-form').classList.remove('hidden');
+        document.getElementById('forgot-sent-box').classList.add('hidden');
+        return;
+      }
+
+      tabsBar.classList.remove('hidden');
+      if (tab === 'signin') {
+        document.getElementById('auth-panel-signin').classList.remove('hidden');
+        btnIn.className = 'py-2 text-sm font-semibold rounded-lg bg-white dark:bg-[#0f264f] text-[#072146] dark:text-white shadow-xs transition-colors';
+        btnUp.className = 'py-2 text-sm font-semibold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors';
+      } else {
+        document.getElementById('auth-panel-signup').classList.remove('hidden');
+        btnUp.className = 'py-2 text-sm font-semibold rounded-lg bg-white dark:bg-[#0f264f] text-[#072146] dark:text-white shadow-xs transition-colors';
+        btnIn.className = 'py-2 text-sm font-semibold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors';
+      }
+      lucide.createIcons();
+    }
+
+    function validateLiveEmail(inputId, okId) {
+      const val = document.getElementById(inputId).value.trim();
+      const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+      document.getElementById(okId).classList.toggle('hidden', !valid);
+    }
+
+    function checkCapsLock(e, warnId) {
+      const caps = e.getModifierState && e.getModifierState('CapsLock');
+      document.getElementById(warnId).classList.toggle('hidden', !caps);
+    }
+
+    function togglePassword(inputId, btn) {
+      const inp = document.getElementById(inputId);
+      const show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      btn.innerHTML = `<i data-lucide="${show ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>`;
+      lucide.createIcons({ nodes: [btn] });
+    }
+
+    function clearErrors() {
+      document.querySelectorAll('[id$="-err"]').forEach(el => {
+        el.textContent = '';
+        el.classList.add('hidden');
+      });
+    }
+
+    function showErr(id, msg) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = msg;
+        el.classList.remove('hidden');
+      }
+    }
+
+    function setButtonSpinner(btnId, loading, idleHtml) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.disabled = loading;
+      if (loading) {
+        btn.innerHTML = `<svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg><span>Please wait...</span>`;
+      } else {
+        btn.innerHTML = idleHtml;
+        lucide.createIcons({ nodes: [btn] });
+      }
+    }
+
+    // Live Password Strength Meter (Weak / Fair / Strong / Forged)
+    function evaluatePasswordStrength(pw) {
+      let score = 0;
+      if (pw.length >= 8) score++;
+      if (/[A-Z]/.test(pw)) score++;
+      if (/[0-9]/.test(pw)) score++;
+      if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+      const barCols = ['bg-rose-500', 'bg-amber-500', 'bg-[#0d6efd]', 'bg-[#00b8ff]'];
+      const labels = ['Weak', 'Fair', 'Strong', 'Forged'];
+      const txtCols = ['text-rose-500', 'text-amber-500', 'text-[#0d6efd]', 'text-[#00b8ff]'];
+
+      for (let i = 1; i <= 4; i++) {
+        document.getElementById(`str-${i}`).className = `rounded-full transition-colors ${i <= score ? barCols[score - 1] : 'bg-slate-200 dark:bg-slate-800'}`;
+      }
+      const txt = document.getElementById('str-text');
+      if (!pw) {
+        txt.textContent = 'Min 8 chars, uppercase, number & symbol';
+        txt.className = 'text-[11px] font-medium text-slate-400';
+      } else {
+        txt.textContent = `Password strength: ${labels[Math.max(0, score - 1)]}`;
+        txt.className = `text-[11px] font-semibold ${txtCols[Math.max(0, score - 1)]}`;
+      }
+    }
+
+    // 2-Step Signup Navigation
+    function nextSignupStep() {
+      clearErrors();
+      const name = document.getElementById('su-name').value.trim();
+      const email = document.getElementById('su-email').value.trim();
+      const pw = document.getElementById('su-password').value;
+
+      let ok = true;
+      if (!name) { showErr('su-name-err', 'Full name is required.'); ok = false; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('su-email-err', 'Enter a valid work email.'); ok = false; }
+      if (pw.length < 8) { showErr('su-password-err', 'Password must be at least 8 characters.'); ok = false; }
+      if (!ok) return;
+
+      document.getElementById('su-step-1').classList.add('hidden');
+      document.getElementById('su-step-2').classList.remove('hidden');
+      document.getElementById('su-step-bar').style.width = '100%';
+      document.getElementById('su-step-dot-1').textContent = '✓';
+      document.getElementById('su-step-dot-1').className = 'w-5 h-5 rounded-full bg-emerald-500 text-white text-[11px] font-bold flex items-center justify-center';
+      document.getElementById('su-step-dot-2').className = 'w-5 h-5 rounded-full bg-[#0d6efd] text-white text-[11px] font-bold flex items-center justify-center';
+      document.getElementById('su-step-label-2').className = 'text-xs font-semibold text-[#072146] dark:text-white';
+    }
+
+    function prevSignupStep() {
+      document.getElementById('su-step-2').classList.add('hidden');
+      document.getElementById('su-step-1').classList.remove('hidden');
+      document.getElementById('su-step-bar').style.width = '0%';
+      document.getElementById('su-step-dot-1').textContent = '1';
+      document.getElementById('su-step-dot-1').className = 'w-5 h-5 rounded-full bg-[#0d6efd] text-white text-[11px] font-bold flex items-center justify-center';
+      document.getElementById('su-step-dot-2').className = 'w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-[11px] font-bold flex items-center justify-center';
+      document.getElementById('su-step-label-2').className = 'text-xs font-semibold text-slate-400';
+    }
+
+    // Sign In Submit
+    document.getElementById('signin-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      clearErrors();
+      const email = document.getElementById('signin-email').value.trim();
+      const pw = document.getElementById('signin-password').value;
+      const use2FA = document.getElementById('signin-2fa-toggle').checked;
+
+      let ok = true;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('signin-email-err', 'Please enter a valid work email.'); ok = false; }
+      if (pw.length < 6) { showErr('signin-password-err', 'Password must be at least 6 characters.'); ok = false; }
+      if (!ok) return;
+
+      const profile = {
+        email,
+        name: email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+      };
+      state.pendingAuthProfile = profile;
+
+      if (use2FA) {
+        openOtpModal();
+        return;
+      }
+
+      const idle = `<span>Sign In</span><i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+      setButtonSpinner('signin-submit-btn', true, idle);
+      setTimeout(() => {
+        setButtonSpinner('signin-submit-btn', false, idle);
+        completeAuthEntry(profile, `Signed in as ${email}`);
+      }, 500);
+    });
+
+    // Sign Up Submit
+    document.getElementById('signup-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      clearErrors();
+      const biz = document.getElementById('su-business').value.trim();
+      const terms = document.getElementById('su-terms').checked;
+      let ok = true;
+      if (!biz) { showErr('su-business-err', 'Business name is required.'); ok = false; }
+      if (!terms) { showErr('su-terms-err', 'Please agree to the Merchant Services Agreement.'); ok = false; }
+      if (!ok) return;
+
+      const profile = {
+        name: document.getElementById('su-name').value.trim(),
+        email: document.getElementById('su-email').value.trim(),
+        business: biz,
+        currency: document.getElementById('su-currency').value,
+        descriptor: `FORGEXPAY*${biz.replace(/[^A-Za-z0-9]/g, '').slice(0, 10).toUpperCase() || 'MERCH'}`,
+      };
+
+      const idle = `<span>Create Account</span><i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+      setButtonSpinner('signup-submit-btn', true, idle);
+      setTimeout(() => {
+        setButtonSpinner('signup-submit-btn', false, idle);
+        completeAuthEntry(profile, `Welcome to forgeXPay, ${biz}!`);
+      }, 550);
+    });
+
+    // Forgot Password Submit
+    document.getElementById('forgot-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      clearErrors();
+      const email = document.getElementById('forgot-email').value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showErr('forgot-email-err', 'Enter a valid work email.');
+        return;
+      }
+      document.getElementById('forgot-target-email').textContent = email;
+      document.getElementById('forgot-form').classList.add('hidden');
+      document.getElementById('forgot-sent-box').classList.remove('hidden');
+      startResendTimer();
+      lucide.createIcons();
+    });
+
+    function startResendTimer() {
+      clearInterval(resendTimer);
+      let secs = 30;
+      const btn = document.getElementById('forgot-resend-btn');
+      btn.disabled = true;
+      btn.textContent = `Resend in ${secs}s`;
+      resendTimer = setInterval(() => {
+        secs--;
+        if (secs <= 0) {
+          clearInterval(resendTimer);
+          btn.disabled = false;
+          btn.textContent = 'Resend Reset Link';
+        } else {
+          btn.textContent = `Resend in ${secs}s`;
+        }
+      }, 1000);
+    }
+
+    function resendResetEmail() {
+      showToast('Recovery link resent.', 'info');
+      startResendTimer();
+    }
+
+    // Google SSO, Auto-fill Demo & Launch Sandbox
+    function handleGoogleAuth() {
+      completeAuthEntry(
+        { name: 'Aarav Sharma', business: 'NovaCart Commerce', email: 'founder@novacart.io' },
+        'Signed in with Google'
+      );
+    }
+
+    function autofillDemoLogin() {
+      document.getElementById('signin-email').value = 'founder@novacart.io';
+      document.getElementById('signin-password').value = 'ForgeX#2026';
+      validateLiveEmail('signin-email', 'signin-email-ok');
+      clearErrors();
+      showToast('Demo credentials filled.', 'info');
+    }
+
+    function launchSandbox() {
+      completeAuthEntry(
+        { name: 'Aarav Sharma', business: 'NovaCart Commerce', email: 'sandbox@forgexpay.io' },
+        'Merchant Sandbox launched!'
+      );
+    }
+
+    // 6-Digit 2FA OTP Modal
+    function initOtpBoxes() {
+      const inputs = Array.from(document.querySelectorAll('.otp-input'));
+      inputs.forEach((box, idx) => {
+        box.addEventListener('input', () => {
+          box.value = box.value.replace(/\D/g, '').slice(0, 1);
+          if (box.value && idx < inputs.length - 1) inputs[idx + 1].focus();
+        });
+        box.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !box.value && idx > 0) inputs[idx - 1].focus();
+          if (e.key === 'Enter') submitOtp();
+        });
+        box.addEventListener('paste', (e) => {
+          e.preventDefault();
+          const digits = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+          digits.split('').forEach((d, i) => { if (inputs[i]) inputs[i].value = d; });
+          if (inputs[Math.min(digits.length, 5)]) inputs[Math.min(digits.length, 5)].focus();
+        });
+      });
+    }
+
+    function openOtpModal() {
+      document.querySelectorAll('.otp-input').forEach(b => (b.value = ''));
+      document.getElementById('otp-error').classList.add('hidden');
+      document.getElementById('otp-modal').classList.remove('hidden');
+      setTimeout(() => document.querySelector('.otp-input').focus(), 60);
+      lucide.createIcons();
+    }
+
+    function closeOtpModal() {
+      document.getElementById('otp-modal').classList.add('hidden');
+    }
+
+    function autofillOtp() {
+      const boxes = document.querySelectorAll('.otp-input');
+      '482910'.split('').forEach((d, i) => (boxes[i].value = d));
+      document.getElementById('otp-error').classList.add('hidden');
+    }
+
+    function submitOtp() {
+      const code = Array.from(document.querySelectorAll('.otp-input')).map(b => b.value).join('');
+      if (code === '482910') {
+        closeOtpModal();
+        completeAuthEntry(state.pendingAuthProfile || state.merchant, '2FA verified — welcome to forgeXPay!');
+      } else {
+        document.getElementById('otp-error').classList.remove('hidden');
+        const card = document.getElementById('otp-card');
+        card.classList.remove('otp-shake');
+        void card.offsetWidth;
+        card.classList.add('otp-shake');
+      }
+    }
+
+    function completeAuthEntry(profile, toastMsg) {
+      Object.assign(state.merchant, profile);
+      state.authenticated = true;
+      document.getElementById('auth-view').classList.add('hidden');
+      document.getElementById('dashboard-view').classList.remove('hidden');
+
+      hydrateMerchantUI();
+      switchDashTab('overview');
+      refreshDashboard();
+      showToast(toastMsg, 'success');
+    }
+
+    function handleSignOut() {
+      state.authenticated = false;
+      toggleProfileMenu(false);
+      closeTxDrawer();
+      document.getElementById('dashboard-view').classList.add('hidden');
+      document.getElementById('auth-view').classList.remove('hidden');
+      switchAuthTab('signin');
+      showToast('Signed out cleanly.', 'info');
+    }
+
+    /* ==================================================================
+       5. DASHBOARD NAVIGATION, PROFILE MENU & ENV MODE
+       ================================================================== */
+    function hydrateMerchantUI() {
+      const initials = (state.merchant.business || state.merchant.name || 'FX')
+        .split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      document.getElementById('header-avatar').textContent = initials;
+      document.getElementById('header-biz-name').textContent = state.merchant.business;
+      document.getElementById('dropdown-biz').textContent = state.merchant.business;
+      document.getElementById('dropdown-email').textContent = state.merchant.email;
+
+      // Settings form values
+      document.getElementById('set-biz').value = state.merchant.business;
+      document.getElementById('set-descriptor').value = state.merchant.descriptor;
+      document.getElementById('set-email').value = state.merchant.email;
+      document.getElementById('set-currency').value = state.merchant.currency;
+      document.getElementById('set-wh-url').value = state.merchant.webhookUrl;
+      document.getElementById('wh-endpoint').value = state.merchant.webhookUrl;
+    }
+
+    function toggleMobileSidebar(open) {
+      document.getElementById('dash-sidebar').classList.toggle('-translate-x-full', !open);
+      document.getElementById('sidebar-overlay').classList.toggle('hidden', !open);
+    }
+
+    function toggleProfileMenu(forceState) {
+      const dd = document.getElementById('profile-dropdown');
+      if (typeof forceState === 'boolean') {
+        dd.classList.toggle('hidden', !forceState);
+      } else {
+        dd.classList.toggle('hidden');
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      const dd = document.getElementById('profile-dropdown');
+      const btn = document.getElementById('profile-menu-btn');
+      if (dd && !dd.classList.contains('hidden') && !dd.contains(e.target) && !btn.contains(e.target)) {
+        dd.classList.add('hidden');
+      }
+    });
+
+    const tabTitleMap = {
+      overview: 'Overview',
+      transactions: 'Transactions',
+      payouts: 'Payouts',
+      links: 'Payment Links',
+      developers: 'Developers & API',
+      settings: 'Settings',
+    };
+
+    function switchDashTab(tab) {
+      state.activeTab = tab;
+      document.getElementById('dash-page-title').textContent = tabTitleMap[tab] || 'Dashboard';
+
+      document.querySelectorAll('.dash-tab').forEach(s => s.classList.add('hidden'));
+      const target = document.getElementById(`tab-${tab}`);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-link').forEach(btn => {
+        const active = btn.dataset.nav === tab;
+        btn.className = active
+          ? 'nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold bg-sky-50 dark:bg-sky-500/15 text-[#0d6efd] dark:text-[#25d0ff] transition-colors'
+          : 'nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-[#072146] dark:hover:text-white transition-colors';
+      });
+
+      toggleMobileSidebar(false);
+      if (tab === 'overview') renderCharts();
+      if (tab === 'transactions') renderFullTransactions();
+      if (tab === 'payouts') renderPayoutsTab();
+      if (tab === 'links') renderPaymentLinks();
+      if (tab === 'developers') renderDevelopersTab();
+      lucide.createIcons();
+    }
+
+    function toggleEnvMode() {
+      state.env = state.env === 'live' ? 'test' : 'live';
+      const isTest = state.env === 'test';
+      document.getElementById('test-mode-banner').classList.toggle('hidden', !isTest);
+      document.getElementById('env-dot').className = `w-2 h-2 rounded-full ${isTest ? 'bg-amber-500' : 'bg-emerald-500'}`;
+      document.getElementById('env-label').textContent = isTest ? 'Test Mode' : 'Live Mode';
+      document.getElementById('env-track').className = `w-7 h-4 rounded-full p-0.5 flex items-center ${isTest ? 'bg-amber-500/25' : 'bg-emerald-500/20'}`;
+      document.getElementById('env-knob').className = `w-3 h-3 rounded-full transition-transform ${isTest ? 'bg-amber-500 translate-x-0' : 'bg-emerald-500 translate-x-3'}`;
+
+      refreshDashboard();
+      showToast(`Switched to ${isTest ? 'Test Mode' : 'Live Mode'}`, isTest ? 'warning' : 'success');
+    }
+
+    function refreshDashboard() {
+      const txs = state.transactions[state.env];
+      document.getElementById('nav-tx-badge').textContent = txs.length;
+
+      const baseUsd = state.env === 'live' ? 102400 : 3200;
+      const grossSum = baseUsd + txs.filter(t => t.status !== 'Failed').reduce((a, t) => a + t.amountUsd, 0);
+      const refundedSum = txs.filter(t => t.status === 'Refunded').reduce((a, t) => a + t.amountUsd, 0);
+      const netSum = grossSum * 0.978 - refundedSum;
+
+      const totalAttempts = txs.length + (state.env === 'live' ? 110 : 18);
+      const failedCount = txs.filter(t => t.status === 'Failed').length;
+      const authRate = (((totalAttempts - failedCount) / totalAttempts) * 100).toFixed(2);
+
+      document.getElementById('kpi-gross').textContent = formatFromUsd(grossSum);
+      document.getElementById('kpi-net').textContent = formatFromUsd(netSum);
+      document.getElementById('kpi-rate').textContent = `${authRate}%`;
+      document.getElementById('kpi-pending').textContent = formatFromUsd(state.balancesUsd[state.env].pending);
+
+      renderOverviewTransactions();
+      renderFullTransactions();
+      renderPayoutsTab();
+      renderPaymentLinks();
+      renderDevelopersTab();
+      if (state.activeTab === 'overview') renderCharts();
+    }
+
+    /* ==================================================================
+       6. CHARTS (Chart.js AREA + DOUGHNUT)
+       ================================================================== */
+    function setChartRange(r) {
+      state.chartRange = r;
+      renderCharts();
+    }
+
+    function renderCharts() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const tickCol = isDark ? '#94a3b8' : '#64748b';
+      const gridCol = isDark ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.22)';
+
+      document.querySelectorAll('.range-btn').forEach(b => {
+        const active = b.dataset.range === state.chartRange;
+        b.className = active
+          ? 'range-btn px-3 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-[#071630] text-[#0d6efd] dark:text-[#25d0ff] shadow-xs transition-colors'
+          : 'range-btn px-3 py-1 rounded-lg text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors';
+      });
+
+      const meta = CURRENCIES[state.merchant.currency] || CURRENCIES.USD;
+      const scale = (state.env === 'live' ? 1 : 0.16) * meta.rate;
+      const ds = state.chartBaseUsd[state.chartRange];
+      const grossData = ds.gross.map(v => Math.round(v * scale));
+      const netData = ds.gross.map(v => Math.round(v * scale * 0.978));
+
+      // Area Chart
+      const revCtx = document.getElementById('revenue-chart').getContext('2d');
+      const gradGross = revCtx.createLinearGradient(0, 0, 0, 280);
+      gradGross.addColorStop(0, 'rgba(13, 110, 253, 0.24)');
+      gradGross.addColorStop(1, 'rgba(13, 110, 253, 0.0)');
+
+      const gradNet = revCtx.createLinearGradient(0, 0, 0, 280);
+      gradNet.addColorStop(0, 'rgba(0, 184, 255, 0.20)');
+      gradNet.addColorStop(1, 'rgba(0, 184, 255, 0.0)');
+
+      if (revenueChart) revenueChart.destroy();
+      revenueChart = new Chart(revCtx, {
+        type: 'line',
+        data: {
+          labels: ds.labels,
+          datasets: [
+            {
+              label: 'Gross Volume',
+              data: grossData,
+              borderColor: '#0d6efd',
+              backgroundColor: gradGross,
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.35,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+            },
+            {
+              label: 'Net Revenue',
+              data: netData,
+              borderColor: '#00b8ff',
+              backgroundColor: gradNet,
+              borderWidth: 2,
+              borderDash: [4, 4],
+              fill: true,
+              tension: 0.35,
+              pointRadius: 2.5,
+              pointHoverRadius: 5,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              position: 'top',
+              align: 'end',
+              labels: { color: tickCol, usePointStyle: true, boxWidth: 8, font: { size: 11, family: 'Inter' } },
+            },
+            tooltip: {
+              backgroundColor: '#072146',
+              padding: 10,
+              cornerRadius: 10,
+              callbacks: { label: c => ` ${c.dataset.label}: ${formatDirect(c.parsed.y, state.merchant.currency)}` },
+            },
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: tickCol, font: { size: 11 } } },
+            y: {
+              grid: { color: gridCol },
+              ticks: {
+                color: tickCol,
+                font: { size: 11 },
+                callback: v => meta.symbol + (v >= 1000000 ? (v / 1000000).toFixed(1) + 'M' : v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v),
+              },
+            },
+          },
+        },
+      });
+
+      // Payment Methods Doughnut Chart
+      const txs = state.transactions[state.env].filter(t => t.status !== 'Failed');
+      const buckets = { Card: 0, UPI: 0, Wallet: 0, Bank: 0 };
+      txs.forEach(t => { if (buckets[t.methodType] !== undefined) buckets[t.methodType] += t.amountUsd; });
+      const total = Object.values(buckets).reduce((a, b) => a + b, 0) || 1;
+      const items = [
+        { label: 'Cards', pct: Math.round((buckets.Card / total) * 100), color: '#072146', darkColor: '#0d6efd' },
+        { label: 'UPI / Instant', pct: Math.round((buckets.UPI / total) * 100), color: '#00b8ff', darkColor: '#00b8ff' },
+        { label: 'Digital Wallets', pct: Math.round((buckets.Wallet / total) * 100), color: '#0d6efd', darkColor: '#38bdf8' },
+        { label: 'Bank Transfer', pct: Math.round((buckets.Bank / total) * 100), color: '#10b981', darkColor: '#10b981' },
+      ];
+
+      const mCtx = document.getElementById('methods-chart').getContext('2d');
+      if (methodsChart) methodsChart.destroy();
+      methodsChart = new Chart(mCtx, {
+        type: 'doughnut',
+        data: {
+          labels: items.map(i => i.label),
+          datasets: [{
+            data: items.map(i => i.pct || 4),
+            backgroundColor: items.map(i => isDark ? i.darkColor : i.color),
+            borderWidth: 0,
+            hoverOffset: 5,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '72%',
+          plugins: { legend: { display: false } },
+        },
+      });
+
+      document.getElementById('methods-legend').innerHTML = items.map(i => `
+        <div class="flex items-center justify-between text-xs">
+          <span class="flex items-center gap-2 text-slate-600 dark:text-slate-300 font-medium">
+            <span class="w-2.5 h-2.5 rounded-full" style="background:${isDark ? i.darkColor : i.color}"></span>
+            ${i.label}
+          </span>
+          <span class="font-mono font-bold text-[#072146] dark:text-white">${i.pct}%</span>
+        </div>
+      `).join('');
+    }
+
+    /* ==================================================================
+       7. TRANSACTIONS TABLE, SEARCH, CSV EXPORT & SLIDE-OVER DRAWER
+       ================================================================== */
+    function statusPill(st) {
+      const map = {
+        Succeeded: 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-200/70 dark:border-emerald-500/30',
+        Pending: 'bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-200/70 dark:border-amber-500/30',
+        Failed: 'bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-200/70 dark:border-rose-500/30',
+        Refunded: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+        Paid: 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-200/70 dark:border-emerald-500/30',
+      };
+      return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${map[st] || map.Pending}">${st}</span>`;
+    }
+
+    function txRowHtml(tx) {
+      return `
+        <tr onclick="openTxDrawer('${tx.id}')" class="hover:bg-slate-50/90 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
+          <td class="py-3.5 px-5 font-mono text-xs font-semibold text-[#0d6efd] dark:text-[#25d0ff]">${tx.id}</td>
+          <td class="py-3.5 px-4">
+            <div class="text-xs font-semibold text-[#072146] dark:text-white">${tx.customer}</div>
+            <div class="text-[11px] text-slate-400">${tx.email}</div>
+          </td>
+          <td class="py-3.5 px-4 text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">${tx.method}</td>
+          <td class="py-3.5 px-4 text-right font-mono font-bold text-xs text-[#072146] dark:text-white whitespace-nowrap">${formatFromUsd(tx.amountUsd)}</td>
+          <td class="py-3.5 px-4 whitespace-nowrap">${statusPill(tx.status)}</td>
+          <td class="py-3.5 px-5 text-right text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">${tx.date}</td>
+        </tr>
+      `;
+    }
+
+    function renderOverviewTransactions() {
+      document.getElementById('overview-tx-tbody').innerHTML = state.transactions[state.env].slice(0, 5).map(txRowHtml).join('');
+    }
+
+    function setTxFilter(st) {
+      state.txStatusFilter = st;
+      renderFullTransactions();
+    }
+
+    function getFilteredTransactions() {
+      const q = (document.getElementById('tx-search')?.value || '').toLowerCase().trim();
+      return state.transactions[state.env].filter(t => {
+        const stMatch = state.txStatusFilter === 'All' || t.status === state.txStatusFilter;
+        const qMatch = !q || t.id.toLowerCase().includes(q) || t.customer.toLowerCase().includes(q) || t.email.toLowerCase().includes(q) || t.method.toLowerCase().includes(q);
+        return stMatch && qMatch;
+      });
+    }
+
+    function renderFullTransactions() {
+      document.querySelectorAll('.tx-filter-btn').forEach(b => {
+        const active = b.dataset.st === state.txStatusFilter;
+        b.className = active
+          ? 'tx-filter-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-[#071630] text-[#0d6efd] dark:text-[#25d0ff] shadow-xs transition-colors'
+          : 'tx-filter-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors';
+      });
+
+      const list = getFilteredTransactions();
+      const tbody = document.getElementById('full-tx-tbody');
+      const empty = document.getElementById('tx-empty-state');
+      if (list.length === 0) {
+        tbody.innerHTML = '';
+        empty.classList.remove('hidden');
+      } else {
+        empty.classList.add('hidden');
+        tbody.innerHTML = list.map(txRowHtml).join('');
+      }
+    }
+
+    function handleGlobalSearch(val) {
+      const txSearch = document.getElementById('tx-search');
+      if (txSearch) txSearch.value = val;
+      if (val.trim().length > 0 && state.activeTab !== 'transactions') {
+        switchDashTab('transactions');
+      } else {
+        renderFullTransactions();
+      }
+    }
+
+    function simulatePayment(customTitle = null, customUsd = null, forcedMethodType = null) {
+      const buyers = [
+        { name: 'Priya Nair', email: 'priya@vervecloud.in', methodType: 'UPI', method: 'UPI • priya@okicici' },
+        { name: 'Liam Mercer', email: 'liam@orbital.io', methodType: 'Card', method: 'Visa •••• 9912' },
+        { name: 'Sana Kapoor', email: 'sana@lumenretail.in', methodType: 'Wallet', method: 'Apple Pay' },
+        { name: 'Jonas Lind', email: 'jonas@nordicflow.se', methodType: 'Bank', method: 'ACH •••• 7210' },
+      ];
+      const b = buyers[Math.floor(Math.random() * buyers.length)];
+      const mType = forcedMethodType || b.methodType;
+      const mLabel = forcedMethodType === 'Card' ? 'Visa •••• 4242' : forcedMethodType === 'UPI' ? 'UPI • instant@fxp' : b.method;
+      const amountUsd = customUsd || +(Math.random() * 1200 + 95).toFixed(2);
+      const id = (state.env === 'test' ? 'fxp_test_' : 'fxp_') + Math.random().toString(16).slice(2, 10);
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ', ' + now.toTimeString().slice(0, 5);
+
+      state.transactions[state.env].unshift({
+        id,
+        customer: customTitle ? `${b.name} (${customTitle})` : b.name,
+        email: b.email,
+        methodType: mType,
+        method: mLabel,
+        amountUsd,
+        status: 'Succeeded',
+        date: dateStr,
+        ip: '104.21.' + Math.floor(Math.random() * 200) + '.' + Math.floor(Math.random() * 250),
+        orderId: 'ORD-' + Math.floor(9100 + Math.random() * 800),
+      });
+
+      state.balancesUsd[state.env].available += +(amountUsd * 0.978).toFixed(2);
+      const series = state.chartBaseUsd[state.chartRange].gross;
+      series[series.length - 1] += Math.round(amountUsd);
+
+      refreshDashboard();
+      showToast(`Simulated payment: +${formatFromUsd(amountUsd)} (${mLabel})`, 'success');
+    }
+
+    function exportTransactionsCSV() {
+      const rows = getFilteredTransactions();
+      const cur = state.merchant.currency;
+      const rate = (CURRENCIES[cur] || CURRENCIES.USD).rate;
+      const csv = [
+        `Payment ID,Customer,Email,Method,Amount (${cur}),Status,Date`,
+        ...rows.map(r => [r.id, `"${r.customer}"`, r.email, `"${r.method}"`, (r.amountUsd * rate).toFixed(2), r.status, `"${r.date}"`].join(',')),
+      ].join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `forgexpay_${state.env}_transactions.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`Exported ${rows.length} transactions to CSV`, 'success');
+    }
+
+    // Slide-Over Transaction Details Drawer
+    function openTxDrawer(id) {
+      const tx = state.transactions[state.env].find(t => t.id === id);
+      if (!tx) return;
+      state.selectedTxId = id;
+      state.confirmingRefund = false;
+      document.getElementById('drawer-tx-id').textContent = tx.id;
+
+      const feeUsd = tx.amountUsd * 0.022;
+      const netUsd = tx.amountUsd - feeUsd;
+
+      document.getElementById('drawer-body').innerHTML = `
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-[#0a1b38] border border-slate-200/70 dark:border-slate-800 flex items-center justify-between">
+          <div>
+            <span class="text-[11px] uppercase tracking-wider font-semibold text-slate-400">Gross Amount</span>
+            <div class="font-display text-2xl font-bold text-[#072146] dark:text-white mt-0.5">${formatFromUsd(tx.amountUsd)}</div>
+          </div>
+          ${statusPill(tx.status)}
+        </div>
+
+        <div class="space-y-2">
+          <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Customer &amp; Payment Method</h4>
+          <div class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
+            <div class="flex justify-between"><span class="text-slate-500">Customer</span><span class="font-semibold text-[#072146] dark:text-white">${tx.customer}</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Email</span><span class="text-slate-700 dark:text-slate-300">${tx.email}</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Payment Method</span><span class="font-medium text-slate-800 dark:text-sky-200">${tx.method}</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Date</span><span class="text-slate-600 dark:text-slate-400">${tx.date}</span></div>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Fee Breakdown</h4>
+          <div class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
+            <div class="flex justify-between"><span class="text-slate-500">Gross Charge</span><span class="font-mono font-semibold text-[#072146] dark:text-white">${formatFromUsd(tx.amountUsd)}</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Gateway Processing (2.2%)</span><span class="font-mono text-rose-500">-${formatFromUsd(feeUsd)}</span></div>
+            <div class="flex justify-between pt-2 border-t border-slate-100 dark:border-slate-800 font-bold text-[#072146] dark:text-white">
+              <span>Net Settled</span>
+              <span class="font-mono text-emerald-600 dark:text-emerald-400">${tx.status === 'Succeeded' ? formatFromUsd(netUsd) : formatDirect(0, state.merchant.currency)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Metadata</h4>
+          <div class="p-3.5 rounded-xl bg-[#040e21] text-sky-200 font-mono text-[11px] space-y-1">
+            <div><span class="text-slate-500">order_id:</span> "${tx.orderId}"</div>
+            <div><span class="text-slate-500">client_ip:</span> "${tx.ip}"</div>
+            <div><span class="text-slate-500">environment:</span> "${state.env}"</div>
+          </div>
+        </div>
+      `;
+
+      renderDrawerFooter(tx);
+      document.getElementById('tx-drawer').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function renderDrawerFooter(tx) {
+      const box = document.getElementById('drawer-footer');
+      if (tx.status !== 'Succeeded') {
+        box.innerHTML = `
+          <div class="flex items-center justify-between text-xs text-slate-500">
+            <span>Status: <strong class="text-[#072146] dark:text-white">${tx.status}</strong></span>
+            <button onclick="copyToClipboard('${tx.id}', 'Payment ID copied!')" class="font-semibold text-[#0d6efd] dark:text-[#25d0ff] hover:underline">Copy ID</button>
+          </div>`;
+        return;
+      }
+
+      if (!state.confirmingRefund) {
+        box.innerHTML = `
+          <div class="flex gap-2.5">
+            <button onclick="copyToClipboard('${tx.id}', 'Payment ID copied!')" class="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0a1b38] text-xs font-semibold text-slate-700 dark:text-slate-200">Copy ID</button>
+            <button onclick="promptRefund()" class="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Issue Full Refund
+            </button>
+          </div>`;
+      } else {
+        box.innerHTML = `
+          <div class="space-y-2.5">
+            <p class="text-xs font-semibold text-rose-600 dark:text-rose-400">Confirm full refund of ${formatFromUsd(tx.amountUsd)} to ${tx.customer}?</p>
+            <div class="flex gap-2">
+              <button onclick="cancelRefund()" class="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300">Cancel</button>
+              <button onclick="confirmRefund()" class="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold">Confirm Refund</button>
+            </div>
+          </div>`;
+      }
+      lucide.createIcons({ nodes: [box] });
+    }
+
+    function promptRefund() {
+      const tx = state.transactions[state.env].find(t => t.id === state.selectedTxId);
+      if (!tx) return;
+      state.confirmingRefund = true;
+      renderDrawerFooter(tx);
+    }
+
+    function cancelRefund() {
+      const tx = state.transactions[state.env].find(t => t.id === state.selectedTxId);
+      if (!tx) return;
+      state.confirmingRefund = false;
+      renderDrawerFooter(tx);
+    }
+
+    function confirmRefund() {
+      const tx = state.transactions[state.env].find(t => t.id === state.selectedTxId);
+      if (!tx) return;
+      tx.status = 'Refunded';
+      state.balancesUsd[state.env].available = Math.max(0, state.balancesUsd[state.env].available - tx.amountUsd);
+      state.confirmingRefund = false;
+      refreshDashboard();
+      openTxDrawer(tx.id);
+      showToast(`Full refund issued for ${tx.id}`, 'warning');
+    }
+
+    function closeTxDrawer() {
+      document.getElementById('tx-drawer').classList.add('hidden');
+      state.selectedTxId = null;
+    }
+
+    /* ==================================================================
+       8. PAYOUTS TAB & INSTANT PAYOUT MODAL
+       ================================================================== */
+    function renderPayoutsTab() {
+      document.getElementById('payout-avail-val').textContent = formatFromUsd(state.balancesUsd[state.env].available);
+      document.getElementById('payout-pending-val').textContent = formatFromUsd(state.balancesUsd[state.env].pending);
+
+      document.getElementById('payouts-tbody').innerHTML = state.payouts.map(p => `
+        <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
+          <td class="py-3.5 px-5 font-mono text-xs font-semibold text-[#072146] dark:text-white">${p.id}</td>
+          <td class="py-3.5 px-4 text-xs text-slate-600 dark:text-slate-300">${p.destination}</td>
+          <td class="py-3.5 px-4 text-xs text-slate-500 dark:text-slate-400">${p.rail}</td>
+          <td class="py-3.5 px-4 text-right font-mono font-bold text-xs text-[#072146] dark:text-white">${formatFromUsd(p.amountUsd)}</td>
+          <td class="py-3.5 px-4">${statusPill(p.status)}</td>
+          <td class="py-3.5 px-5 text-right text-xs text-slate-500 dark:text-slate-400">${p.date}</td>
+        </tr>
+      `).join('');
+    }
+
+    function openPayoutModal() {
+      const cur = state.merchant.currency;
+      const rate = (CURRENCIES[cur] || CURRENCIES.USD).rate;
+      const availLocal = +(state.balancesUsd[state.env].available * rate).toFixed(2);
+      document.getElementById('payout-modal-avail').textContent = formatDirect(availLocal, cur);
+      document.getElementById('payout-cur-code').textContent = cur;
+      const inp = document.getElementById('payout-amount-input');
+      inp.max = availLocal;
+      inp.value = Math.min(availLocal, +(2000 * rate).toFixed(2));
+      updatePayoutPreview();
+      document.getElementById('payout-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closePayoutModal() {
+      document.getElementById('payout-modal').classList.add('hidden');
+    }
+
+    function setMaxPayout() {
+      const rate = (CURRENCIES[state.merchant.currency] || CURRENCIES.USD).rate;
+      document.getElementById('payout-amount-input').value = +(state.balancesUsd[state.env].available * rate).toFixed(2);
+      updatePayoutPreview();
+    }
+
+    function updatePayoutPreview() {
+      const amt = parseFloat(document.getElementById('payout-amount-input').value) || 0;
+      const rail = document.querySelector('input[name="payout-rail"]:checked')?.value || 'instant';
+      const fee = rail === 'instant' ? amt * 0.01 : 0;
+      const net = Math.max(0, amt - fee);
+      document.getElementById('payout-fee-txt').textContent = formatDirect(fee, state.merchant.currency);
+      document.getElementById('payout-net-txt').textContent = formatDirect(net, state.merchant.currency);
+    }
+
+    document.getElementById('payout-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const cur = state.merchant.currency;
+      const rate = (CURRENCIES[cur] || CURRENCIES.USD).rate;
+      const amtLocal = parseFloat(document.getElementById('payout-amount-input').value) || 0;
+      const amtUsd = amtLocal / rate;
+
+      if (amtUsd <= 0 || amtUsd > state.balancesUsd[state.env].available + 0.01) {
+        showToast('Enter a valid amount within your available balance.', 'error');
+        return;
+      }
+
+      const rail = document.querySelector('input[name="payout-rail"]:checked')?.value || 'instant';
+      const id = 'po_fxp_' + Math.floor(1000 + Math.random() * 8999);
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ', ' + now.toTimeString().slice(0, 5);
+
+      state.balancesUsd[state.env].available = Math.max(0, +(state.balancesUsd[state.env].available - amtUsd).toFixed(2));
+      state.payouts.unshift({
+        id,
+        destination: 'HDFC Corporate •••• 8824',
+        rail: rail === 'instant' ? 'Instant Rail' : 'Standard Bank',
+        amountUsd: amtUsd,
+        status: rail === 'instant' ? 'Paid' : 'Pending',
+        date: dateStr,
+      });
+
+      closePayoutModal();
+      refreshDashboard();
+      showToast(`Payout ${id} (${formatDirect(amtLocal, cur)}) initiated!`, 'success');
+    });
+
+    /* ==================================================================
+       9. PAYMENT LINKS & HOSTED CHECKOUT PREVIEW
+       ================================================================== */
+    function renderPaymentLinks() {
+      const grid = document.getElementById('links-grid');
+      grid.innerHTML = state.paymentLinks.map(l => `
+        <div class="rounded-2xl bg-white dark:bg-[#071630] border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between gap-4">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">Active</span>
+              <span class="text-[11px] text-slate-400">${l.visits} views</span>
+            </div>
+            <h3 class="font-display font-bold text-sm text-[#072146] dark:text-white mt-3">${l.title}</h3>
+            <div class="font-display text-xl font-bold text-[#0d6efd] dark:text-[#25d0ff] mt-1">
+              ${formatDirect(l.amount, l.currency)} <span class="text-xs font-mono font-normal text-slate-400">${l.currency}</span>
+            </div>
+            <p class="mt-2 font-mono text-[11px] text-slate-500 dark:text-slate-400 truncate bg-slate-50 dark:bg-[#0a1b38] px-2.5 py-1.5 rounded-lg">${l.url}</p>
+          </div>
+          <div class="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <button onclick="copyToClipboard('${l.url}', 'Payment link copied!')" class="flex-1 py-2 px-3 rounded-xl bg-slate-100 dark:bg-[#0a1b38] hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center justify-center gap-1.5">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Link
+            </button>
+            <button onclick="openCheckoutModal('${l.id}')" class="flex-1 py-2 px-3 rounded-xl bg-sky-50 dark:bg-sky-500/15 hover:bg-sky-100 dark:hover:bg-sky-500/25 text-xs font-semibold text-[#0d6efd] dark:text-[#25d0ff] inline-flex items-center justify-center gap-1.5">
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Preview Checkout
+            </button>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons({ nodes: [grid] });
+    }
+
+    function openCreateLinkModal() {
+      document.getElementById('link-cur-in').value = state.merchant.currency;
+      document.getElementById('create-link-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeCreateLinkModal() {
+      document.getElementById('create-link-modal').classList.add('hidden');
+    }
+
+    document.getElementById('create-link-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = document.getElementById('link-title-in').value.trim();
+      const amount = parseFloat(document.getElementById('link-amt-in').value);
+      const currency = document.getElementById('link-cur-in').value;
+      if (!title || !amount) return;
+
+      const slug = Math.random().toString(36).slice(2, 9);
+      state.paymentLinks.unshift({
+        id: 'lnk_' + slug,
+        title,
+        amount,
+        currency,
+        url: `https://pay.forgexpay.io/lnk_${slug}`,
+        visits: 0,
+        active: true,
+      });
+      e.target.reset();
+      closeCreateLinkModal();
+      renderPaymentLinks();
+      showToast(`Created payment link for ${title}`, 'success');
+    });
+
+    function openCheckoutModal(id) {
+      const lnk = state.paymentLinks.find(l => l.id === id);
+      if (!lnk) return;
+      state.previewLinkId = id;
+      lnk.visits++;
+      renderPaymentLinks();
+      const formatted = formatDirect(lnk.amount, lnk.currency);
+      document.getElementById('co-title').textContent = lnk.title;
+      document.getElementById('co-amount').textContent = formatted;
+      document.getElementById('co-pay-btn').textContent = `Pay ${formatted}`;
+      document.getElementById('checkout-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeCheckoutModal() {
+      document.getElementById('checkout-modal').classList.add('hidden');
+    }
+
+    function completeCheckoutPreview() {
+      const lnk = state.paymentLinks.find(l => l.id === state.previewLinkId);
+      if (!lnk) return;
+      const rate = (CURRENCIES[lnk.currency] || CURRENCIES.USD).rate;
+      const usdVal = +(lnk.amount / rate).toFixed(2);
+      const methodChoice = document.querySelector('input[name="co-method"]:checked')?.value || 'Card';
+      closeCheckoutModal();
+      simulatePayment(lnk.title, usdVal, methodChoice);
+    }
+
+    /* ==================================================================
+       10. DEVELOPERS & API + WEBHOOK EVENT TESTER
+       ================================================================== */
+    function renderDevelopersTab() {
+      const keys = state.apiKeys[state.env];
+      const pill = document.getElementById('dev-env-pill');
+      pill.textContent = state.env === 'live' ? 'Live Mode' : 'Test Sandbox';
+      pill.className = state.env === 'live'
+        ? 'px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
+        : 'px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400';
+
+      document.getElementById('dev-pk').textContent = keys.pk;
+      document.getElementById('dev-sk').textContent = state.secretRevealed
+        ? keys.sk
+        : keys.sk.slice(0, 14) + '••••••••••••••••••••' + keys.sk.slice(-4);
+
+      const btn = document.getElementById('btn-reveal-sk');
+      btn.innerHTML = `<i data-lucide="${state.secretRevealed ? 'eye-off' : 'eye'}" class="w-3.5 h-3.5"></i> ${state.secretRevealed ? 'Hide' : 'Reveal'}`;
+      lucide.createIcons({ nodes: [btn] });
+
+      renderWebhookLogs();
+      if (!document.getElementById('wh-json-box').textContent.trim()) {
+        previewWebhookJson(document.getElementById('wh-event-type').value);
+      }
+    }
+
+    function toggleSecretKey() {
+      state.secretRevealed = !state.secretRevealed;
+      renderDevelopersTab();
+    }
+
+    function copyApiKey(which) {
+      copyToClipboard(state.apiKeys[state.env][which], `${which === 'pk' ? 'Publishable' : 'Secret'} key copied!`);
+    }
+
+    function openRollKeyModal() {
+      document.getElementById('roll-key-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeRollKeyModal() {
+      document.getElementById('roll-key-modal').classList.add('hidden');
+    }
+
+    function confirmRollSecretKey() {
+      const rnd = () => Math.random().toString(16).slice(2, 12);
+      const prefix = state.env === 'live' ? 'fxp_live_sk_' : 'fxp_test_sk_';
+      state.apiKeys[state.env].sk = `${prefix}${rnd()}${rnd()}`;
+      state.secretRevealed = true;
+      closeRollKeyModal();
+      renderDevelopersTab();
+      showToast('Secret key rolled successfully.', 'warning');
+    }
+
+    function previewWebhookJson(evtType) {
+      const evtId = 'evt_fxp_' + Math.random().toString(16).slice(2, 10);
+      const payload = {
+        id: evtId,
+        gateway: 'forgeXPay',
+        api_version: '2026-11-01',
+        livemode: state.env === 'live',
+        type: evtType,
+        created: Math.floor(Date.now() / 1000),
+        data: {
+          id: evtType.startsWith('payout') ? 'po_fxp_8841' : 'fxp_' + Math.random().toString(16).slice(2, 10),
+          merchant: state.merchant.business,
+          currency: state.merchant.currency,
+          amount: 128000,
+          status: evtType.includes('failed') ? 'failed' : evtType.includes('refunded') ? 'refunded' : 'succeeded',
+        },
+      };
+      document.getElementById('wh-json-box').textContent = JSON.stringify(payload, null, 2);
+      return evtId;
+    }
+
+    function sendTestWebhook() {
+      const evtType = document.getElementById('wh-event-type').value;
+      const evtId = previewWebhookJson(evtType);
+      const latency = `${Math.floor(55 + Math.random() * 65)}ms`;
+      const time = new Date().toTimeString().slice(0, 8);
+
+      state.webhookLogs.unshift({ id: evtId, event: evtType, status: 200, latency, time });
+      document.getElementById('wh-status-badge').textContent = `200 OK • ${latency}`;
+      renderWebhookLogs();
+      showToast(`Webhook ${evtType} delivered (200 OK in ${latency})`, 'success');
+    }
+
+    function renderWebhookLogs() {
+      document.getElementById('wh-log-list').innerHTML = state.webhookLogs.slice(0, 6).map(l => `
+        <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 dark:bg-[#0a1b38] text-xs">
+          <div class="min-w-0">
+            <div class="font-mono font-semibold text-[#072146] dark:text-sky-200 truncate">${l.event}</div>
+            <div class="text-[10px] text-slate-400">${l.id} • ${l.time}</div>
+          </div>
+          <span class="shrink-0 font-mono text-[11px] font-bold text-emerald-600 dark:text-emerald-400">${l.status} • ${l.latency}</span>
+        </div>
+      `).join('');
+    }
+
+    /* ==================================================================
+       11. SETTINGS FORMS
+       ================================================================== */
+    document.getElementById('settings-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      state.merchant.business = document.getElementById('set-biz').value.trim() || state.merchant.business;
+      state.merchant.descriptor = document.getElementById('set-descriptor').value.trim().toUpperCase();
+      state.merchant.email = document.getElementById('set-email').value.trim() || state.merchant.email;
+      state.merchant.currency = document.getElementById('set-currency').value;
+
+      hydrateMerchantUI();
+      refreshDashboard();
+      showToast('Merchant profile updated.', 'success');
+    });
+
+    document.getElementById('prefs-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      state.merchant.webhookUrl = document.getElementById('set-wh-url').value.trim() || state.merchant.webhookUrl;
+      document.getElementById('wh-endpoint').value = state.merchant.webhookUrl;
+      showToast('Webhook & alert preferences saved.', 'success');
+    });
+
+    /* ==================================================================
+       12. BOOTSTRAP ON LOAD
+       ================================================================== */
+    window.addEventListener('load', () => {
+      document.getElementById('auth-brand-logo').innerHTML = buildBrandLockup('auth-logo', 'lg', false);
+      document.getElementById('sidebar-brand-logo').innerHTML = buildBrandLockup('sb-logo', 'md', false);
+      document.getElementById('checkout-mini-brand').innerHTML = buildBrandLockup('co-logo', 'sm', true);
+
+      initOtpBoxes();
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
